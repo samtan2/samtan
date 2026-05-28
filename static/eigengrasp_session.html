@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>eigengrasp — session replay</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0c0d;--bg3:#1a1a1d;--bg4:#222226;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);
+  --text:#e2e2df;--muted:#7a7a76;--dim:#3a3a38;
+  --locked:#4ade80;--active:#60a5fa;--open:#fbbf24;
+  --r:5px;--r2:9px;--mono:'DM Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;overflow:hidden}
+#app{display:grid;grid-template-columns:1fr 1fr;height:100vh}
+.pane-head{padding:9px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+#chat-pane{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+#messages{flex:1;overflow:hidden;padding:12px 15px;display:flex;flex-direction:column;gap:7px;justify-content:flex-end}
+.msg{display:flex}
+.msg.user{justify-content:flex-end}
+.bubble{max-width:88%;padding:7px 11px;border-radius:var(--r2);font-size:11.5px;line-height:1.55;opacity:0;transform:translateY(5px);transition:opacity .3s ease,transform .3s ease}
+.bubble.show{opacity:1;transform:none}
+.msg.user .bubble{background:var(--bg4);border:1px solid var(--border2)}
+.msg.assistant .bubble{color:var(--muted)}
+#step-bar{padding:8px 15px;border-top:1px solid var(--border);display:flex;gap:4px;align-items:center}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--dim);transition:background .5s}
+.dot.cur{background:var(--open)}
+.dot.done{background:rgba(74,222,128,.35)}
+#panel-pane{display:flex;flex-direction:column;overflow:hidden}
+#panel-body{flex:1;overflow-y:auto;padding:12px 15px;display:flex;flex-direction:column;gap:14px}
+.zone-lbl{font-size:9px;letter-spacing:.13em;text-transform:uppercase;margin-bottom:6px}
+.zone-lbl.locked{color:var(--locked)}
+.zone-lbl.active{color:var(--active)}
+.zone-lbl.open{color:var(--open)}
+.empty-zone{font-size:11px;color:var(--dim);padding-left:2px}
+
+/* shared item shell */
+.item{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;margin-bottom:4px;opacity:0;transform:translateY(-5px);transition:opacity .45s ease,transform .45s ease}
+.item:last-child{margin-bottom:0}
+.item.show{opacity:1;transform:none}
+.item.locked-item{border-left:2px solid var(--locked)}
+.item.active-item{border-left:2px solid var(--active)}
+.item.open-item{border-left:2px solid var(--open)}
+
+/* prose items (human signals session) */
+.item-text{font-size:11.5px;line-height:1.45;color:var(--text)}
+.item-why{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.35}
+.item-opts{margin-top:6px;display:flex;flex-direction:column;gap:2px}
+.item-opt{font-size:10px;color:var(--dim)}
+
+/* typed param items (metagrasp session) */
+.param-header{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.param-name{font-size:11px;color:var(--text)}
+.param-type{font-size:9px;color:var(--dim);letter-spacing:.04em}
+.param-tag{font-size:8px;letter-spacing:.08em;text-transform:uppercase;padding:1px 5px;border-radius:3px}
+.tag-constraint{color:var(--active);background:rgba(96,165,250,.08)}
+.tag-goal{color:var(--locked);background:rgba(74,222,128,.08)}
+.tag-assumption{color:var(--open);background:rgba(251,191,36,.08)}
+/* bool */
+.bool-val{font-size:11px;margin-bottom:3px}
+.bool-true{color:var(--locked)}
+.bool-false{color:var(--dim)}
+/* enum */
+.enum-opts{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:3px}
+.enum-opt{font-size:9px;padding:2px 7px;border-radius:3px;border:1px solid var(--border);color:var(--dim);letter-spacing:.03em}
+.enum-opt.sel{border-color:var(--locked);color:var(--locked);background:rgba(74,222,128,.07)}
+.enum-opt.sel-open{border-color:var(--open);color:var(--open);background:rgba(251,191,36,.07)}
+/* string */
+.string-val{font-size:10.5px;color:var(--muted);margin-bottom:3px}
+/* object */
+.obj-val{font-size:10px;color:var(--muted);margin-bottom:3px;display:flex;flex-direction:column;gap:2px}
+.obj-row{display:flex;gap:5px}
+.obj-k{color:var(--dim)}
+
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--dim);border-radius:2px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="chat-pane">
+    <div class="pane-head">
+      <span>eigengrasp — chat</span>
+    </div>
+    <div id="messages"></div>
+    <div id="step-bar"></div>
+  </div>
+  <div id="panel-pane">
+    <div class="pane-head">
+      <span>structure</span>
+      <span id="domain-lbl" style="font-size:9px;color:var(--muted)"></span>
+    </div>
+    <div id="panel-body"></div>
+  </div>
+</div>
+<script>
+
+// ─── Session data ────────────────────────────────────────────────────────────
+//
+// Two item formats:
+//   prose  → { text, why?, opts? }           (human signals session)
+//   typed  → { name, type, value?, options?, tag, why }  (metagrasp session)
+
+const SESSIONS = {
+
+  // ── Human Signals in Digital Artifacts ──────────────────────────────────
+  human_signals: {
+    domain: "Human Signals in Digital Artifacts",
+    steps: [
+      {
+        user: "taxonimizing signals of humanity in digital artifacts",
+        assistant: "Interesting territory. Let me find the load-bearing structure. First cut: what makes a signal of humanity rather than just of human origin?",
+        panel: {
+          locked: [],
+          active: [],
+          open: [{ text: "What is the core target: detecting that a human made it, or that a human is present in it?", opts: ["Made by human (provenance)", "Human presence encoded in it (phenomenological trace)", "Both — they're inseparable"] }]
+        }
+      },
+      {
+        user: "Human presence encoded in it — phenomenological trace",
+        assistant: "Good. Provenance is forensics — this is harder and more interesting. A phenomenological trace implies something leaked through, not just produced.",
+        panel: {
+          locked: [],
+          active: [{ text: "Target signal is phenomenological trace — human presence encoded, not merely human origin", why: "Defines the object of study; without this, taxonomy collapses into provenance detection" }],
+          open: [{ text: "What is the primary character of the trace being taxonomized?", opts: ["Involuntary leakage (errors, biometrics, idiosyncrasy)", "Voluntary expression (style, intent, affect)", "Residue of embodiment (time, hesitation, motor pattern)", "All three — the taxonomy spans them"] }]
+        }
+      },
+      {
+        user: "All three — the taxonomy spans them",
+        assistant: "That's a serious structural demand. The taxonomy needs an organizing axis that can sort across all three without collapsing them.",
+        panel: {
+          locked: [{ text: "Target signal is phenomenological trace — human presence encoded, not merely human origin", why: "Defines the object of study; without this, taxonomy collapses into provenance detection" }],
+          active: [{ text: "The taxonomy spans involuntary leakage, voluntary expression, and embodiment residue", why: "Scope claim — determines what the taxonomy must sort without collapsing categories" }],
+          open: [{ text: "What is the primary organizing axis of the taxonomy?", opts: ["Signal legibility (how readable the trace is to others)", "Signal intentionality (how much the human meant to leave it)", "Signal substrate — where in the artifact it lives", "Signal survivability (how much encoding degrades it)"] }]
+        }
+      },
+      {
+        user: "Signal substrate — where in the artifact it lives",
+        assistant: "Substrate as primary axis is load-bearing — it's the only axis that's artifact-immanent rather than interpreter-dependent. Substrate just is.",
+        panel: {
+          locked: [
+            { text: "Target signal is phenomenological trace — human presence encoded, not merely human origin", why: "Defines the object of study; without this, taxonomy collapses into provenance detection" },
+            { text: "Primary organizing axis is signal substrate — where in the artifact the trace lives", why: "Only artifact-immanent axis; all others require an interpreter to constitute them" }
+          ],
+          active: [{ text: "The taxonomy spans involuntary leakage, voluntary expression, and embodiment residue across substrates", why: "These three trace-types must remain distinguishable within each substrate class" }],
+          open: [{ text: "Which substrate class does the taxonomy cover?", opts: ["Temporal (rhythm, latency, hesitation patterns)", "Lexical/syntactic (word choice, idiolect)", "Graphical/visual (marks, layout, rendering choices)", "Structural/organizational (how parts relate)"] }]
+        }
+      },
+      {
+        user: "Graphical/visual — marks, layout, rendering choices",
+        assistant: "You selected only graphical/visual — is that a correction (this is the only substrate) or a starting point?",
+        panel: {
+          locked: [
+            { text: "Target signal is phenomenological trace — human presence encoded, not merely human origin", why: "Defines the object of study" },
+            { text: "Primary organizing axis is signal substrate — where in the artifact the trace lives", why: "Only artifact-immanent axis; all others require an interpreter" }
+          ],
+          active: [{ text: "The taxonomy spans involuntary leakage, voluntary expression, and embodiment residue across substrates", why: "These three trace-types must remain distinguishable within each substrate class" }],
+          open: [{ text: "What does selecting only graphical/visual mean for the taxonomy scope?", opts: ["Correction — the taxonomy is specifically about visual/graphical artifacts only", "Starting point — develop graphical substrate first, then return", "The other substrates are real but secondary or derivative"] }]
+        }
+      },
+      {
+        user: "Correction — the taxonomy is specifically about visual/graphical artifacts only",
+        assistant: "Good — that sharpens everything. We're taxonomizing phenomenological traces as they appear in visual/graphical substrate: marks, layout, rendering choices.",
+        panel: {
+          locked: [
+            { text: "Target signal is phenomenological trace — human presence encoded, not merely human origin", why: "Defines the object of study" },
+            { text: "Primary organizing axis is signal substrate — where in the artifact the trace lives", why: "Only artifact-immanent axis" },
+            { text: "Scope is visual/graphical artifacts only — marks, layout, rendering choices", why: "Narrows taxonomy to a single substrate class; prevents scope collapse" }
+          ],
+          active: [],
+          open: [{ text: "What is the primary grain of analysis — where does the taxonomy primarily operate?", opts: ["Mark level (individual strokes, pixels, gestures)", "Element level (objects, shapes, glyphs, components)", "Compositional level (arrangement, hierarchy, spatial relationships)", "All three levels — the taxonomy must work across grain sizes"] }]
+        }
+      },
+      {
+        user: "All three levels — the taxonomy must work across grain sizes",
+        assistant: "That's a strong structural commitment — and it generates a real problem: what holds the taxonomy together across grain sizes?",
+        panel: {
+          locked: [
+            { text: "Target signal is phenomenological trace — human presence encoded, not merely human origin", why: "Defines the object of study" },
+            { text: "Primary organizing axis is signal substrate — where in the artifact the trace lives", why: "Only artifact-immanent axis" },
+            { text: "Scope is visual/graphical artifacts only — marks, layout, rendering choices", why: "Narrows taxonomy to a single substrate class" },
+            { text: "Taxonomy operates across mark, element, and compositional grain sizes", why: "Grain-spanning requirement demands a unifying principle beyond substrate alone" }
+          ],
+          active: [],
+          open: [{ text: "What unifies traces across grain sizes — what makes them all instances of the same taxon?", opts: ["They all index a decision (something chosen rather than defaulted)", "They all carry variance that exceeds what the task required", "They all resist full procedural generation", "They all require a body or situated perspective to produce"] }]
+        }
+      },
+      {
+        user: "They all index a decision — something chosen rather than defaulted",
+        assistant: "That's load-bearing. 'Decision vs. default' is grain-independent and substrate-immanent. A hesitation mark and a compositional asymmetry are both choices against available defaults.",
+        panel: {
+          locked: [
+            { text: "Target signal is phenomenological trace — human presence encoded, not merely human origin", why: "Defines the object of study" },
+            { text: "Primary organizing axis is signal substrate — where in the artifact the trace lives", why: "Only artifact-immanent axis" },
+            { text: "Scope is visual/graphical artifacts only — marks, layout, rendering choices", why: "Narrows taxonomy to a single substrate class" },
+            { text: "Taxonomy operates across mark, element, and compositional grain sizes", why: "Grain-spanning requirement demands a unifying principle beyond substrate alone" },
+            { text: "Unifying principle: traces index decisions — choices against available defaults", why: "Only grain-independent, artifact-immanent unifier; makes all taxa instances of the same thing" }
+          ],
+          active: [],
+          open: [{ text: "How is 'default' defined in this taxonomy?", opts: ["Tool default (what the software/medium produces without intervention)", "Statistical default (what most practitioners do in this genre/context)", "Generative default (what an optimizing algorithm would produce)", "The taxonomy needs all three — defaults are layered"] }]
+        }
+      },
+      {
+        user: "Statistical default + Tool default — both",
+        assistant: "Two defaults, not three. They're orthogonal signal channels. Tool deviation detects embodiment and effort; statistical deviation detects individuation and style.",
+        panel: {
+          locked: [
+            { text: "Target signal is phenomenological trace — human presence encoded, not merely human origin", why: "Defines the object of study" },
+            { text: "Primary organizing axis is signal substrate — where in the artifact the trace lives", why: "Only artifact-immanent axis" },
+            { text: "Scope is visual/graphical artifacts only — marks, layout, rendering choices", why: "Narrows taxonomy to a single substrate class" },
+            { text: "Taxonomy operates across mark, element, and compositional grain sizes", why: "Grain-spanning requirement demands a unifying principle beyond substrate alone" },
+            { text: "Unifying principle: traces index decisions — choices against available defaults", why: "Only grain-independent, artifact-immanent unifier" },
+            { text: "Default space is two-axis: tool default × statistical default — any deviation from either is signal-bearing", why: "Defines the background against which human-indexing deviation is measured" }
+          ],
+          active: [{ text: "Tool deviation indexes embodiment/effort; statistical deviation indexes individuation/style", why: "The two channels are orthogonal — a trace is a vector in default space, not a binary signal" }],
+          open: [{ text: "When a trace deviates from only one default axis, is it still a valid human signal?", opts: ["Yes — any single-axis deviation is signal-bearing", "Only deviation from both simultaneously counts as strong signal", "They index different things: tool = embodiment, statistical = individuation"] }]
+        }
+      },
+      {
+        user: "They index different things — tool deviation = embodiment/effort, statistical = individuation/style",
+        assistant: "That's the load-bearing joint. The two defaults aren't redundant filters — they're orthogonal signal channels. Every trace is a vector in a two-dimensional default space.",
+        panel: {
+          locked: [
+            { text: "Target signal is phenomenological trace — human presence encoded, not merely human origin", why: "Defines the object of study" },
+            { text: "Primary organizing axis is signal substrate — where in the artifact the trace lives", why: "Only artifact-immanent axis" },
+            { text: "Scope is visual/graphical artifacts only — marks, layout, rendering choices", why: "Narrows taxonomy to a single substrate class" },
+            { text: "Taxonomy operates across mark, element, and compositional grain sizes", why: "Grain-spanning requirement demands a unifying principle beyond substrate alone" },
+            { text: "Unifying principle: traces index decisions — choices against available defaults", why: "Only grain-independent, artifact-immanent unifier" },
+            { text: "Default space is two-axis: tool default × statistical default — any deviation from either is signal-bearing", why: "Defines the background against which human-indexing deviation is measured" },
+            { text: "Tool deviation indexes embodiment/effort; statistical deviation indexes individuation/style", why: "The two channels are orthogonal — a trace is a vector in default space" }
+          ],
+          active: [],
+          open: [{ text: "What should drive the top-level taxon classes?", opts: ["The three trace-types: leakage, expression, embodiment residue", "The two default axes: embodiment-channel vs individuation-channel", "The three grain sizes: mark, element, compositional"] }]
+        }
+      },
+      {
+        user: "Stylization · Correction/overmark · Incompleteness/termination · Pressure/weight variation",
+        assistant: "Four mark-level taxa confirmed. Tremor and spatial anchoring excluded — the taxonomy stays with legible decisions, not raw biometric noise.",
+        panel: {
+          locked: [
+            { text: "Target signal is phenomenological trace — human presence encoded, not merely human origin", why: "Defines the object of study" },
+            { text: "Primary organizing axis is signal substrate — where in the artifact the trace lives", why: "Only artifact-immanent axis" },
+            { text: "Scope is visual/graphical artifacts only — marks, layout, rendering choices", why: "Narrows taxonomy to a single substrate class" },
+            { text: "Taxonomy operates across mark, element, and compositional grain sizes", why: "Grain-spanning requirement demands a unifying principle beyond substrate alone" },
+            { text: "Unifying principle: traces index decisions — choices against available defaults", why: "Only grain-independent, artifact-immanent unifier" },
+            { text: "Default space is two-axis: tool default × statistical default — any deviation from either is signal-bearing", why: "Defines the background" },
+            { text: "Tool deviation indexes embodiment/effort; statistical deviation indexes individuation/style", why: "The two channels are orthogonal" }
+          ],
+          active: [
+            { text: "Mark-level taxa: Stylization, Correction/overmark, Incompleteness/termination, Pressure/weight variation", why: "Four confirmed mark-level classes spanning voluntary expression, decision traces, and embodiment residue" },
+            { text: "Tremor and spatial anchoring excluded — taxonomy stays with legible decisions, not raw biometric noise", why: "Defines the lower boundary of signal legibility for this taxonomy" }
+          ],
+          open: [{ text: "At the element level, which trace-types are real and distinct enough to be separate taxa?", opts: ["Idiosyncratic rendering", "Element substitution", "Elaboration/ornamentation", "Hybridization", "Proportion deviation", "Persistence of obsolete forms"] }]
+        }
+      },
+      {
+        user: "Elaboration/ornamentation · Hybridization · Idiosyncratic rendering · Element substitution · Proportion deviation · Persistence of obsolete forms",
+        assistant: "Six element-level taxa confirmed. Reduction/omission excluded — the taxonomy detects what's added or distorted, not what's missing.",
+        panel: {
+          locked: [
+            { text: "Target signal is phenomenological trace — human presence encoded, not merely human origin", why: "Defines the object of study" },
+            { text: "Primary organizing axis is signal substrate — where in the artifact the trace lives", why: "Only artifact-immanent axis" },
+            { text: "Scope is visual/graphical artifacts only — marks, layout, rendering choices", why: "Narrows taxonomy to a single substrate class" },
+            { text: "Taxonomy operates across mark, element, and compositional grain sizes", why: "Grain-spanning requirement demands a unifying principle beyond substrate alone" },
+            { text: "Unifying principle: traces index decisions — choices against available defaults", why: "Only grain-independent, artifact-immanent unifier" },
+            { text: "Default space is two-axis: tool default × statistical default — any deviation from either is signal-bearing", why: "Defines the background" },
+            { text: "Tool deviation indexes embodiment/effort; statistical deviation indexes individuation/style", why: "The two channels are orthogonal" }
+          ],
+          active: [
+            { text: "Mark-level taxa: Stylization, Correction/overmark, Incompleteness/termination, Pressure/weight variation", why: "Four confirmed mark-level classes" },
+            { text: "Tremor and spatial anchoring excluded — taxonomy stays with legible decisions, not raw biometric noise", why: "Defines the lower boundary of signal legibility" },
+            { text: "Element-level taxa: Elaboration/ornamentation, Hybridization, Idiosyncratic rendering, Element substitution, Proportion deviation, Persistence of obsolete forms", why: "Six confirmed element-level classes; absence/omission excluded — taxonomy detects presence-based deviation only" }
+          ],
+          open: [{ text: "At the compositional level, which trace-types are real and distinct enough to be separate taxa?", opts: ["Asymmetric balance", "Density anomaly", "Focal violation", "Narrative sequencing", "Genre blending", "Scalar incongruity", "Boundary transgression"] }]
+        }
+      }
+    ]
+  },
+
+  // ── Metagrasp — Human-AI Spec Interface ─────────────────────────────────
+  // Locked items use typed params: { name, type, value, options?, tag, why }
+  // Active items stay as prose: { text, why }
+  // Open items use typed param shells (no value): { name, type, options?, tag, why }
+  metagrasp: {
+    domain: "Human-AI Spec Interface",
+    steps: [
+      {
+        user: "a bidirectional spec sheet — typed parameters like houdini's parm sheet — that both human and ai can read and edit as a shared interface for building systems",
+        assistant: "Before we build structure, let me locate the actual problem this solves. When a human and AI collaborate to build a system — what breaks?",
+        panel: {
+          locked: [],
+          active: [{ text: "A shared typed parameter sheet is the right interface primitive for human-AI system-building", why: "Everything else derives from whether this interface claim is true" }],
+          open: [{ text: "What's the primary failure mode: intent drift (AI misreads what you want), or output opacity (you can't inspect/correct what's being built)?", opts: ["A: Intent drift — AI misreads goals", "B: Output opacity — can't inspect/correct mid-flight", "C: Both equally"] }]
+        }
+      },
+      {
+        user: "C: Both equally",
+        assistant: "Both directions are broken. That points at a real gap: there's no persistent, inspectable contract between human and AI during construction.",
+        panel: {
+          locked: [
+            { name: "persistent_contract", type: "bool", value: false, tag: "constraint", why: "Both intent drift and opacity trace to this absence" }
+          ],
+          active: [
+            { text: "A shared typed parameter sheet is the right interface primitive for this contract", why: "Typed parameters are simultaneously human-readable, AI-parseable, and editable from either side" },
+            { text: "Bidirectionality is essential — both human and AI must be able to write to the sheet", why: "One-way spec already exists as prompting; the novel claim is AI can update the contract too" }
+          ],
+          open: [{ text: "Which direction is load-bearing: spec drives execution, or execution updates spec?", opts: ["Spec drives execution — it's authoritative", "Execution updates spec — it's a mirror/log", "Both: spec and execution stay in sync bidirectionally"] }]
+        }
+      },
+      {
+        user: "Both: spec and execution stay in sync bidirectionally",
+        assistant: "That sync claim has a sharp consequence: someone has to win when they diverge. The resolution rule isn't cosmetic — it's what makes the system coherent.",
+        panel: {
+          locked: [
+            { name: "persistent_contract", type: "bool", value: false, tag: "constraint", why: "Both intent drift and opacity trace to this absence" },
+            { name: "bidirectional_sync", type: "bool", value: true, tag: "constraint", why: "Spec drives execution AND execution updates spec" }
+          ],
+          active: [
+            { text: "A shared typed parameter sheet is the right interface primitive for this contract", why: "Typed parameters are simultaneously human-readable, AI-parseable, and editable from either side" },
+            { text: "Conflict resolution is a first-class design problem, not an edge case", why: "Bidirectional sync guarantees divergence moments; without a resolution rule the system is incoherent" }
+          ],
+          open: [{ text: "When spec and execution diverge, who has final authority?", opts: ["Human always wins — AI proposes, human confirms", "AI wins if change is within typed constraints", "Conflict surfaces as an explicit 'contested' state"] }]
+        }
+      },
+      {
+        user: "Human always wins — AI proposes, human confirms",
+        assistant: "That locks the authority model. The AI's writes to the sheet are a different kind of write — they're proposals, not commits.",
+        panel: {
+          locked: [
+            { name: "persistent_contract", type: "bool", value: false, tag: "constraint", why: "Both intent drift and opacity trace to this absence" },
+            { name: "bidirectional_sync", type: "bool", value: true, tag: "constraint", why: "Spec drives execution AND execution updates spec" },
+            { name: "authority_model", type: "enum", value: "human_wins", options: ["human_wins", "ai_wins", "contested", "provenance_based"], tag: "constraint", why: "Human confirms, AI proposes" }
+          ],
+          active: [
+            { text: "A shared typed parameter sheet is the right interface primitive for this contract", why: "Typed parameters are simultaneously human-readable, AI-parseable, and editable from either side" },
+            { text: "Parameters need at least two value states: confirmed and proposed", why: "Human-wins rule means AI writes are a categorically different operation" }
+          ],
+          open: [{ text: "Where does the 'proposed' state live?", opts: ["Inside each parameter as a field", "A separate proposal layer alongside the sheet", "Proposals are ephemeral — in context but not written until confirmed", "Full state machine: confirmed, proposed, contested"] }]
+        }
+      },
+      {
+        user: "Proposals are ephemeral — shown in context but not written to the sheet until confirmed",
+        assistant: "Clean. The sheet stays pure — it only ever contains confirmed human-sanctioned state. It's a ledger of decisions, not a negotiation space.",
+        panel: {
+          locked: [
+            { name: "persistent_contract", type: "bool", value: false, tag: "constraint", why: "Both intent drift and opacity trace to this absence" },
+            { name: "bidirectional_sync", type: "bool", value: true, tag: "constraint", why: "Spec drives execution AND execution updates spec" },
+            { name: "authority_model", type: "enum", value: "human_wins", options: ["human_wins", "ai_wins", "contested", "provenance_based"], tag: "constraint", why: "Human confirms, AI proposes" },
+            { name: "confirmed_only_state", type: "bool", value: true, tag: "constraint", why: "Sheet is a pure ledger" }
+          ],
+          active: [
+            { text: "A shared typed parameter sheet is the right interface primitive for this contract", why: "Typed parameters are simultaneously human-readable, AI-parseable, and editable from either side" },
+            { text: "Parameter schema is the load-bearing design surface — it defines what can be legally proposed and confirmed", why: "If the schema is wrong, the whole contract is wrong" }
+          ],
+          open: [{ text: "What does a parameter need beyond Houdini's schema?", opts: ["Intent / purpose field — why this parameter exists", "Provenance — who set it and when (human or AI)", "Open / locked status — whether AI can propose changes", "Dependency links"] }]
+        }
+      },
+      {
+        user: "Provenance · Open/locked status · Intent",
+        assistant: "Those three additions make each parameter self-documenting and self-governing. A parameter is now a mini-contract — an epistemic node, not just a value slot.",
+        panel: {
+          locked: [
+            { name: "persistent_contract", type: "bool", value: false, tag: "constraint", why: "Both intent drift and opacity trace to this absence" },
+            { name: "bidirectional_sync", type: "bool", value: true, tag: "constraint", why: "Spec drives execution AND execution updates spec" },
+            { name: "authority_model", type: "enum", value: "human_wins", options: ["human_wins", "ai_wins", "contested", "provenance_based"], tag: "constraint", why: "Human confirms, AI proposes" },
+            { name: "confirmed_only_state", type: "bool", value: true, tag: "constraint", why: "Sheet is a pure ledger" },
+            { name: "parameter_schema", type: "object", value: { name: "string", type: "string", "intent.tag": "enum", provenance: "author+timestamp", open: "bool" }, tag: "goal", why: "Each param is self-documenting, self-governing, AI-parseable" }
+          ],
+          active: [
+            { text: "Intent uses a hybrid schema: controlled tag (constraint|goal|assumption) + free prose", why: "Tag gives AI a reasoning handle; prose preserves human expressiveness — neither alone is sufficient" }
+          ],
+          open: [{ text: "Is the sheet flat or does it have structure above the parameter level?", opts: ["Flat — parameters are peers", "Grouped — named sections", "Hierarchical — sheets can contain sub-sheets", "Graph — parameters link via dependency edges"] }]
+        }
+      },
+      {
+        user: "Hierarchical — sheets can contain sub-sheets (nested systems)",
+        assistant: "Hierarchy makes the sheet recursive — a system is just a sheet, and sheets compose. That's the right move for building systems out of systems.",
+        panel: {
+          locked: [
+            { name: "persistent_contract", type: "bool", value: false, tag: "constraint", why: "Both intent drift and opacity trace to this absence" },
+            { name: "bidirectional_sync", type: "bool", value: true, tag: "constraint", why: "Spec drives execution AND execution updates spec" },
+            { name: "authority_model", type: "enum", value: "human_wins", options: ["human_wins", "ai_wins", "contested", "provenance_based"], tag: "constraint", why: "Human confirms, AI proposes" },
+            { name: "confirmed_only_state", type: "bool", value: true, tag: "constraint", why: "Sheet is a pure ledger" },
+            { name: "parameter_schema", type: "object", value: { name: "string", type: "string", "intent.tag": "enum", provenance: "author+timestamp", open: "bool" }, tag: "goal", why: "Each param is self-documenting, self-governing, AI-parseable" },
+            { name: "sheet_structure", type: "enum", value: "hierarchical", options: ["flat", "grouped", "hierarchical", "graph"], tag: "constraint", why: "Sheets contain sub-sheets" }
+          ],
+          active: [
+            { text: "Hierarchy without cross-references is visual grouping, not structural composition", why: "Real system relationships require parameters to bind across levels" }
+          ],
+          open: [{ text: "Can a parameter in a sub-sheet reference or bind to a parameter in a parent or sibling sheet?", opts: ["Yes — full path-based references", "Yes — but only downward", "Yes — but references must be explicitly confirmed by human", "No — sheets are isolated"] }]
+        }
+      },
+      {
+        user: "Yes — references confirmed · Staged execution · Alongside chat · Human-owned file",
+        assistant: "The structure is now fully locked. A human-owned, hierarchical typed parameter file where chat generates ephemeral proposals, humans confirm decisions, and committed diffs drive execution.",
+        panel: {
+          locked: [
+            { name: "persistent_contract", type: "bool", value: false, tag: "constraint", why: "Both intent drift and opacity trace to this absence" },
+            { name: "bidirectional_sync", type: "bool", value: true, tag: "constraint", why: "Spec drives execution AND execution updates spec" },
+            { name: "authority_model", type: "enum", value: "human_wins", options: ["human_wins", "ai_wins", "contested", "provenance_based"], tag: "constraint", why: "Human confirms, AI proposes" },
+            { name: "confirmed_only_state", type: "bool", value: true, tag: "constraint", why: "Sheet is a pure ledger" },
+            { name: "parameter_schema", type: "object", value: { name: "string", type: "string", "intent.tag": "enum", provenance: "author+timestamp", open: "bool" }, tag: "goal", why: "Each param is self-documenting, self-governing, AI-parseable" },
+            { name: "sheet_structure", type: "enum", value: "hierarchical", options: ["flat", "grouped", "hierarchical", "graph"], tag: "constraint", why: "Sheets contain sub-sheets" },
+            { name: "cross_sheet_references", type: "bool", value: true, tag: "constraint", why: "References require explicit human confirmation" },
+            { name: "execution_model", type: "enum", value: "staged", options: ["automatic", "explicit", "configurable", "staged"], tag: "constraint", why: "Changes batch until human commits" },
+            { name: "core_primitive", type: "string", value: "shared_typed_parameter_sheet", tag: "goal", why: "The irreducible, necessary, generative unit" },
+            { name: "layer_division", type: "object", value: { chat: "proposal_space", sheet: "decision_space" }, tag: "constraint", why: "Chat and sheet are complementary" },
+            { name: "persistence_model", type: "enum", value: "human_owned_file", options: ["human_owned_file", "hosted_service", "context_embedded", "tool_format"], tag: "constraint", why: "Version-controlled file, no platform lock-in" }
+          ],
+          active: [],
+          open: [{ name: "serialization", type: "enum", options: ["yaml", "json", "toml", "format_agnostic"], tag: "assumption", why: "Schema is the system, serialization is implementation detail" }]
+        }
+      },
+      {
+        user: "eigengrasp as it currently exists — what's load-bearing, what's still surface, what's missing",
+        assistant: "Load-bearing: persistent_contract, confirmed_only_state, authority_model, parameter_schema, layer_division. Missing: what triggers AI proposals, how AI reads the sheet, conflict detection, commit structure.",
+        panel: {
+          locked: [
+            { name: "persistent_contract", type: "bool", value: false, tag: "constraint", why: "Both intent drift and opacity trace to this absence" },
+            { name: "bidirectional_sync", type: "bool", value: true, tag: "constraint", why: "Spec drives execution AND execution updates spec" },
+            { name: "authority_model", type: "enum", value: "human_wins", options: ["human_wins", "ai_wins", "contested", "provenance_based"], tag: "constraint", why: "Human confirms, AI proposes" },
+            { name: "confirmed_only_state", type: "bool", value: true, tag: "constraint", why: "Sheet is a pure ledger" },
+            { name: "parameter_schema", type: "object", value: { name: "string", type: "string", "intent.tag": "enum", provenance: "author+timestamp", open: "bool" }, tag: "goal", why: "Each param is self-documenting, self-governing, AI-parseable" },
+            { name: "sheet_structure", type: "enum", value: "hierarchical", options: ["flat", "grouped", "hierarchical", "graph"], tag: "constraint", why: "Sheets contain sub-sheets" },
+            { name: "cross_sheet_references", type: "bool", value: true, tag: "constraint", why: "References require explicit human confirmation" },
+            { name: "execution_model", type: "enum", value: "staged", options: ["automatic", "explicit", "configurable", "staged"], tag: "constraint", why: "Changes batch until human commits" },
+            { name: "core_primitive", type: "string", value: "shared_typed_parameter_sheet", tag: "goal", why: "The irreducible, necessary, generative unit" },
+            { name: "layer_division", type: "object", value: { chat: "proposal_space", sheet: "decision_space" }, tag: "constraint", why: "Chat and sheet are complementary" },
+            { name: "persistence_model", type: "enum", value: "human_owned_file", options: ["human_owned_file", "hosted_service", "context_embedded", "tool_format"], tag: "constraint", why: "Version-controlled file, no platform lock-in" }
+          ],
+          active: [],
+          open: [
+            { name: "proposal_trigger", type: "enum", options: ["reactive_only", "proactive", "both", "scoped"], tag: "assumption", why: "The system assumes proposals happen but never specifies what initiates them" },
+            { name: "sheet_ingestion", type: "enum", options: ["full_context", "query_based", "diff_only", "human_curated"], tag: "constraint", why: "If AI cannot reliably read the full sheet, bidirectional sync breaks" },
+            { name: "conflict_detection", type: "enum", options: ["ai_flags_on_read", "commit_time_check", "explicit_contested_state", "human_responsibility"], tag: "constraint", why: "Hierarchy without conflict detection is decoration" },
+            { name: "commit_structure", type: "enum", options: ["human_reviews_ai_diff", "structured_changelog", "external_tool", "freeform"], tag: "goal", why: "Staged execution requires a defined commit act" }
+          ]
+        }
+      },
+      {
+        user: "proactive · ai_flags_on_read · human_reviews_ai_diff · threaded",
+        assistant: "Proactive trigger, ai_flags_on_read, human_reviews_ai_diff, and threaded proposals all converge on a single remaining requirement: the AI must see the full sheet.",
+        panel: {
+          locked: [
+            { name: "persistent_contract", type: "bool", value: false, tag: "constraint", why: "Both intent drift and opacity trace to this absence" },
+            { name: "bidirectional_sync", type: "bool", value: true, tag: "constraint", why: "Spec drives execution AND execution updates spec" },
+            { name: "authority_model", type: "enum", value: "human_wins", options: ["human_wins", "ai_wins", "contested", "provenance_based"], tag: "constraint", why: "Human confirms, AI proposes" },
+            { name: "confirmed_only_state", type: "bool", value: true, tag: "constraint", why: "Sheet is a pure ledger" },
+            { name: "parameter_schema", type: "object", value: { name: "string", type: "string", "intent.tag": "enum", provenance: "author+timestamp", open: "bool" }, tag: "goal", why: "Each param is self-documenting, self-governing, AI-parseable" },
+            { name: "sheet_structure", type: "enum", value: "hierarchical", options: ["flat", "grouped", "hierarchical", "graph"], tag: "constraint", why: "Sheets contain sub-sheets" },
+            { name: "cross_sheet_references", type: "bool", value: true, tag: "constraint", why: "References require explicit human confirmation" },
+            { name: "execution_model", type: "enum", value: "staged", options: ["automatic", "explicit", "configurable", "staged"], tag: "constraint", why: "Changes batch until human commits" },
+            { name: "core_primitive", type: "string", value: "shared_typed_parameter_sheet", tag: "goal", why: "The irreducible, necessary, generative unit" },
+            { name: "layer_division", type: "object", value: { chat: "proposal_space", sheet: "decision_space" }, tag: "constraint", why: "Chat and sheet are complementary" },
+            { name: "persistence_model", type: "enum", value: "human_owned_file", options: ["human_owned_file", "hosted_service", "context_embedded", "tool_format"], tag: "constraint", why: "Version-controlled file, no platform lock-in" },
+            { name: "proposal_trigger", type: "enum", value: "proactive", options: ["reactive_only", "proactive", "both", "scoped"], tag: "assumption", why: "AI proposes when it detects gaps or contradictions" },
+            { name: "conflict_detection", type: "enum", value: "ai_flags_on_read", options: ["ai_flags_on_read", "commit_time_check", "explicit_contested_state", "human_responsibility"], tag: "constraint", why: "Detection and proposal are the same mechanism at different levels" },
+            { name: "commit_structure", type: "enum", value: "human_reviews_ai_diff", options: ["human_reviews_ai_diff", "structured_changelog", "external_tool", "freeform"], tag: "goal", why: "Closes the decision loop while preserving human authority" },
+            { name: "proposal_taxonomy", type: "enum", value: "threaded", options: ["single_surface", "typed_proposals", "severity_ranked", "threaded"], tag: "constraint", why: "Proposals attach directly to the param they concern" }
+          ],
+          active: [{ name: "sheet_ingestion", type: "enum", options: ["full_context", "query_based", "diff_only", "human_curated"], tag: "constraint", why: "Proactive trigger, ai_flags_on_read, and threaded proposals all require the AI to locate specific parameters reliably" }],
+          open: []
+        }
+      }
+    ]
+  }
+};
+
+// ─── Rendering ───────────────────────────────────────────────────────────────
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const messagesEl = document.getElementById('messages');
+const panelBodyEl = document.getElementById('panel-body');
+const stepBarEl = document.getElementById('step-bar');
+const domainLbl = document.getElementById('domain-lbl');
+
+let gen = 0;
+let prevKeys = new Set();
+
+function itemKey(item) {
+  return item.name || item.text?.slice(0, 50) || '';
+}
+
+function buildDots(count) {
+  stepBarEl.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    d.id = `dot-${i}`;
+    stepBarEl.appendChild(d);
+  }
+}
+
+function updateDots(idx, total) {
+  for (let i = 0; i < total; i++) {
+    const d = document.getElementById(`dot-${i}`);
+    if (d) d.className = 'dot' + (i < idx ? ' done' : i === idx ? ' cur' : '');
+  }
+}
+
+function addMessage(role, text) {
+  while (messagesEl.children.length >= 5) messagesEl.removeChild(messagesEl.firstChild);
+  const msg = document.createElement('div');
+  msg.className = `msg ${role}`;
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+  msg.appendChild(bubble);
+  messagesEl.appendChild(msg);
+  requestAnimationFrame(() => requestAnimationFrame(() => bubble.classList.add('show')));
+}
+
+function buildTypedItem(item, zoneCls) {
+  const el = document.createElement('div');
+
+  // header: name · type · tag
+  const header = document.createElement('div');
+  header.className = 'param-header';
+
+  const nm = document.createElement('span');
+  nm.className = 'param-name';
+  nm.textContent = item.name;
+  header.appendChild(nm);
+
+  if (item.type) {
+    const tp = document.createElement('span');
+    tp.className = 'param-type';
+    tp.textContent = item.type;
+    header.appendChild(tp);
+  }
+
+  if (item.tag) {
+    const tg = document.createElement('span');
+    tg.className = `param-tag tag-${item.tag}`;
+    tg.textContent = item.tag;
+    header.appendChild(tg);
+  }
+
+  el.appendChild(header);
+
+  // value
+  if (item.type === 'bool' && item.value !== undefined && item.value !== null) {
+    const v = document.createElement('div');
+    v.className = 'bool-val';
+    v.innerHTML = item.value
+      ? `<span class="bool-true">● true</span>`
+      : `<span class="bool-false">○ false</span>`;
+    el.appendChild(v);
+
+  } else if (item.type === 'enum' && item.options) {
+    const opts = document.createElement('div');
+    opts.className = 'enum-opts';
+    item.options.forEach(o => {
+      const span = document.createElement('span');
+      const isSelected = o === item.value;
+      span.className = 'enum-opt' + (isSelected ? (zoneCls === 'open' ? ' sel-open' : ' sel') : '');
+      span.textContent = o;
+      opts.appendChild(span);
+    });
+    el.appendChild(opts);
+
+  } else if (item.type === 'string' && item.value) {
+    const v = document.createElement('div');
+    v.className = 'string-val';
+    v.textContent = `"${item.value}"`;
+    el.appendChild(v);
+
+  } else if (item.type === 'object' && item.value) {
+    const obj = document.createElement('div');
+    obj.className = 'obj-val';
+    Object.entries(item.value).forEach(([k, v]) => {
+      const row = document.createElement('div');
+      row.className = 'obj-row';
+      row.innerHTML = `<span class="obj-k">${k}</span><span>→ ${v}</span>`;
+      obj.appendChild(row);
+    });
+    el.appendChild(obj);
+  }
+
+  // why
+  if (item.why) {
+    const why = document.createElement('div');
+    why.className = 'item-why';
+    why.textContent = item.why;
+    el.appendChild(why);
+  }
+
+  return el;
+}
+
+function buildProseItem(item) {
+  const el = document.createElement('div');
+
+  const txt = document.createElement('div');
+  txt.className = 'item-text';
+  txt.textContent = item.text;
+  el.appendChild(txt);
+
+  if (item.why) {
+    const why = document.createElement('div');
+    why.className = 'item-why';
+    why.textContent = item.why;
+    el.appendChild(why);
+  }
+
+  if (item.opts) {
+    const opts = document.createElement('div');
+    opts.className = 'item-opts';
+    item.opts.slice(0, 4).forEach(o => {
+      const d = document.createElement('div');
+      d.className = 'item-opt';
+      d.textContent = '· ' + o;
+      opts.appendChild(d);
+    });
+    el.appendChild(opts);
+  }
+
+  return el;
+}
+
+function renderPanel(panel) {
+  panelBodyEl.innerHTML = '';
+
+  function addZone(label, items, cls) {
+    const zone = document.createElement('div');
+    const lbl = document.createElement('div');
+    lbl.className = `zone-lbl ${cls}`;
+    lbl.textContent = label;
+    zone.appendChild(lbl);
+
+    if (!items.length) {
+      const emp = document.createElement('div');
+      emp.className = 'empty-zone';
+      emp.textContent = '—';
+      zone.appendChild(emp);
+    } else {
+      items.forEach(item => {
+        const shell = document.createElement('div');
+        shell.className = `item ${cls}-item`;
+        const isNew = !prevKeys.has(itemKey(item));
+        if (!isNew) shell.classList.add('show');
+
+        const inner = item.name ? buildTypedItem(item, cls) : buildProseItem(item);
+        while (inner.firstChild) shell.appendChild(inner.firstChild);
+
+        zone.appendChild(shell);
+        if (isNew) requestAnimationFrame(() => requestAnimationFrame(() => shell.classList.add('show')));
+      });
+    }
+    panelBodyEl.appendChild(zone);
+  }
+
+  addZone('locked', panel.locked, 'locked');
+  addZone('active', panel.active, 'active');
+  addZone('open', panel.open, 'open');
+  prevKeys = new Set([...panel.locked, ...panel.active, ...panel.open].map(itemKey));
+}
+
+// ─── Loop ────────────────────────────────────────────────────────────────────
+
+async function runLoop(myGen, key) {
+  const session = SESSIONS[key];
+  domainLbl.textContent = session.domain.toLowerCase();
+  buildDots(session.steps.length);
+  renderPanel({ locked: [], active: [], open: [] });
+
+  while (gen === myGen) {
+    for (let i = 0; i < session.steps.length; i++) {
+      if (gen !== myGen) return;
+      const step = session.steps[i];
+      updateDots(i, session.steps.length);
+
+      addMessage('user', step.user);
+      await sleep(900);
+      if (gen !== myGen) return;
+
+      addMessage('assistant', step.assistant);
+      await sleep(700);
+      if (gen !== myGen) return;
+
+      renderPanel(step.panel);
+      await sleep(3200);
+      if (gen !== myGen) return;
+    }
+
+    await sleep(1200);
+    if (gen !== myGen) return;
+    prevKeys = new Set();
+    messagesEl.innerHTML = '';
+    renderPanel({ locked: [], active: [], open: [] });
+    await sleep(600);
+  }
+}
+
+function startSession(key) {
+  gen++;
+  prevKeys = new Set();
+  messagesEl.innerHTML = '';
+  runLoop(gen, key);
+}
+
+window.addEventListener('message', e => {
+  if (e.data?.type === 'switch') startSession(e.data.key);
+});
+
+startSession('metagrasp');
+</script>
+</body>
+</html>

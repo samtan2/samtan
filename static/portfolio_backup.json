@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "exported": "2026-05-28T01:34:49.866Z",
+  "content": {
+    "header.name": "Samuel Tan",
+    "header.bio": "One line \u2014 what you do and why it matters",
+    "garment.tag": "case study",
+    "garment.title": "garment_gen",
+    "garment.desc": "A friend studying fashion and I both used pattern making software and hit the same wall. Powerful tools, but they ask you to think like a patternmaker before you can think like a designer. He introduced me to the sloper, the foundational pattern every garment starts from, derived from body measurements with everything else following from that. Garments already have a procedural system underneath them. I built a tool that applies the same logic anyone can use that's stable enough to build further on.",
+    "eigengrasp.tag": "tool",
+    "eigengrasp.title": "eigengrasp",
+    "eigengrasp.desc": "A tool for finding the load-bearing structure of any domain. Built to establish shared ground truth between human and AI collaborators \u2014 before building, before prompting. Relevant to any creative process where alignment matters.",
+    "pill.tag": "project",
+    "pill.title": "pill organizer",
+    "pill.desc": "Designed for people who want functional objects that don't feel clinical. Explored bi-stable hinge mechanisms, magnetic lids, removable containers, and slide-out forms across multiple sketch iterations. Material studies spanning wood, metal, and plastic. Brief drawn from wabi-sabi and archive fashion sensibility \u2014 something durable and timeless rather than medical.",
+    "renders.tag": "work",
+    "renders.title": "renders",
+    "recognition.tag": "recognition",
+    "recognition.body": "Antoni Tudisco repost \u00b7 Aus Taylor comment \u00b7 Gnomon"
+  },
+  "sectionOrder": [
+    "header",
+    "garment",
+    "eigengrasp",
+    "pill",
+    "renders",
+    "recognition"
+  ],
+  "blocks": {
+    "header": [],
+    "garment": [
+      {
+        "id": 1779928389759,
+        "type": "video",
+        "label": "Method A \u2014 Ray SOP panel projection\u00a0worked, but it had a ceiling. The garment lived in world space, so any change to the avatar broke it. And placing the inputs correctly required garment knowledge the tool was meant to remove.",
+        "content": "/videos/method_a.mp4",
+        "height": 300
+      },
+      {
+        "id": 1779922685459,
+        "type": "video",
+        "label": "Method B \u2014 Geodesic body encoding\u00a0solved both. Body landmarks anyone already knows, and a garment that follows the body wherever it goes.",
+        "content": "/videos/method_b.mp4",
+        "height": 300
+      },
+      {
+        "id": 1,
+        "type": "iframe",
+        "label": "Drop in your avatar, place intuitive landmarks, start designing",
+        "content": "/garment.html",
+        "height": 480
+      },
+      {
+        "id": 1779924951275,
+        "type": "text",
+        "label": "Reflection",
+        "content": "Method A required knowing where garments are constructed before you could design one. Method B replaced that with what designers already know about the body. Both methods informed what the tool needed to be, technically robust, but intuitive enough to stay out of the way. By grounding the system in what people already know, the simpler input and the most structurally sound approach were always the same decision.",
+        "height": 300
+      }
+    ]
+  }
+}

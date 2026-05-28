@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(cp /home/sam/Downloads/mind_map.webp /home/sam/samtan/static/pill_sketch.webp)",
+      "Bash(cp /home/sam/Downloads/black_pill.webp /home/sam/samtan/static/pill_black.webp)",
+      "Bash(cp /home/sam/Downloads/white_pill.webp /home/sam/samtan/static/pill_white.webp)",
+      "Bash(cp /home/sam/Downloads/preview.webp /home/sam/samtan/static/render0.webp)",
+      "Bash(cp /home/sam/Downloads/preview1.webp /home/sam/samtan/static/render1.webp)",
+      "Bash(cp /home/sam/Downloads/preview2.webp /home/sam/samtan/static/render2.webp)",
+      "Bash(cp /home/sam/Downloads/preview3.webp /home/sam/samtan/static/render3.webp)",
+      "Bash(cp /home/sam/Downloads/preview4.webp /home/sam/samtan/static/render4.webp)"
+    ]
+  }
+}
