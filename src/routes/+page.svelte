@@ -22,7 +22,7 @@
   <section class="border border-zinc-200 rounded-xl px-5 py-4" style="margin-top: 1.5rem;">
     <p class="text-[10px] uppercase tracking-[0.12em] text-zinc-400 mb-2">case study</p>
     <h2 class="text-[15px] font-medium text-zinc-900 mb-1">garment_gen</h2>
-    <p class="text-[10px] uppercase tracking-[0.12em] text-zinc-400 mb-3">Built in Houdini</p>
+    <p class="text-[12px] text-zinc-400 mb-3">Built in Houdini</p>
     <p class="text-[13px] text-zinc-500 leading-relaxed mb-4">A friend studying fashion and I both used pattern making software and hit the same wall. Powerful tools, but they ask you to think like a patternmaker before you can think like a designer. He introduced me to the sloper, the foundational pattern every garment starts from, derived from body measurements with everything else following from that. Garments already have a procedural system underneath them. I built a tool that applies the same logic anyone can use that's stable enough to build further on.</p>
 
     <div class="mt-4">
@@ -92,7 +92,7 @@
 
   <section class="border border-zinc-200 rounded-xl px-5 py-4" style="margin-top: 1.5rem;">
     <p class="text-[13px] text-zinc-500 leading-relaxed mb-3">
-      <span class="text-[10px] uppercase tracking-[0.12em] text-zinc-400 mr-3">Instagram</span><a href="https://instagram.com/3ddump" target="_blank" rel="noopener" class="text-zinc-500 hover:text-zinc-800 transition-colors">@3ddump</a>
+      <a href="https://instagram.com/3ddump" target="_blank" rel="noopener" class="text-zinc-500 hover:text-zinc-800 transition-colors">@3ddump</a>
     </p>
     <div class="grid grid-cols-3 gap-2">
       {#each ['/work1.jpg','/work2.jpg','/work3.jpg','/work4.jpg','/work5.jpg','/work6.png'] as src}
