@@ -35,7 +35,7 @@
 
     <div class="mt-4">
       <p class="text-[13px] text-zinc-500 leading-relaxed mb-2">Drop in your avatar, place intuitive landmarks, start designing</p>
-      <iframe src="/garment.html" class="w-full rounded-lg border border-zinc-200" style="height: 480px;" title="garment_gen demo"></iframe>
+      <iframe src="/garment" class="w-full rounded-lg border border-zinc-200" style="height: 480px;" title="garment_gen demo"></iframe>
     </div>
 
     <div class="mt-4">
@@ -68,7 +68,7 @@
     </div>
     <iframe
       bind:this={egFrame}
-      src="/eigengrasp_session.html"
+      src="/eigengrasp_session"
       class="w-full rounded-lg"
       style="height: 600px;"
       title="eigengrasp session replay"
