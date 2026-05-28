@@ -14,7 +14,7 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;overflow:hidden}
-#app{display:grid;grid-template-columns:1fr 1fr;height:100vh}
+#app{display:grid;grid-template-columns:1fr 2fr;height:100vh}
 .pane-head{padding:9px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 #chat-pane{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
 #messages{flex:1;overflow:hidden;padding:12px 15px;display:flex;flex-direction:column;gap:7px;justify-content:flex-end}
@@ -74,6 +74,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--m
 .obj-row{display:flex;gap:5px}
 .obj-k{color:var(--dim)}
 
+.items-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:4px}
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-thumb{background:var(--dim);border-radius:2px}
 </style>
@@ -636,6 +637,8 @@ function renderPanel(panel) {
       emp.textContent = '—';
       zone.appendChild(emp);
     } else {
+      const container = document.createElement('div');
+      if (cls === 'locked') container.className = 'items-grid';
       items.forEach(item => {
         const shell = document.createElement('div');
         shell.className = `item ${cls}-item`;
@@ -645,9 +648,10 @@ function renderPanel(panel) {
         const inner = item.name ? buildTypedItem(item, cls) : buildProseItem(item);
         while (inner.firstChild) shell.appendChild(inner.firstChild);
 
-        zone.appendChild(shell);
+        container.appendChild(shell);
         if (isNew) requestAnimationFrame(() => requestAnimationFrame(() => shell.classList.add('show')));
       });
+      zone.appendChild(container);
     }
     panelBodyEl.appendChild(zone);
   }
