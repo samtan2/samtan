@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Garment Construction — v1</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700&display=swap');
@@ -16,6 +17,29 @@
   .panels.single-b .panel.ray{display:none}
   .panels.single-b ~ #ui{display:none}
   .panels.single-b ~ #ui2{display:none}
+
+  @media(max-width:600px){
+    /* Force single-panel on mobile — hide both button */
+    #btn-both{ display:none }
+    /* ui3 controls move to bottom, full width, scrollable */
+    #ui3{
+      top:auto !important; bottom:0; right:0; left:0;
+      border-radius:0; border-top:1px solid #1c1c20;
+      border-bottom-left-radius:0 !important;
+      flex-direction:row; flex-wrap:wrap; gap:4px;
+      padding:6px 10px; min-width:0;
+      max-height:38vh; overflow-y:auto;
+    }
+    /* Tighten methodBar */
+    #methodBar{ padding:4px 8px; gap:4px }
+    /* Replay buttons at bottom center */
+    #ui2{ bottom:50px !important }
+    .panel.ray button[onclick="replayMethodA()"]{ bottom:50px !important }
+    /* Panel headers smaller */
+    .panel-title{ font-size:9px !important }
+    /* ui3 tree sections lay flat */
+    .tree-section{ flex:1; min-width:120px }
+  }
   .panel{position:relative;border-right:1px solid #1c1c20}
   .panel:last-child{border-right:none}
   canvas{display:block;width:100%!important;height:100%!important}
@@ -2489,7 +2513,7 @@ function setMethod(m) {
              ui2.style.left   = (m==='b') ? '50%' : '75%'; }
   window.dispatchEvent(new Event('resize'));
 }
-setMethod('b');
+setMethod(window.innerWidth <= 600 ? 'b' : 'b');
 </script>
 
 
