@@ -88,13 +88,26 @@
     <p class="text-[13px] text-zinc-900 leading-relaxed mb-4">A friend studying fashion and I both used pattern making software and hit the same wall. Powerful tools, but they ask you to think like a patternmaker before you can think like a designer. He introduced me to the sloper, the foundational pattern every garment starts from, derived from body measurements with everything else following from that. Garments already have a procedural system underneath them. I built a tool that applies the same logic anyone can use that's stable enough to build further on.</p>
 
     <div class="mt-4">
-      <h3 class="text-[15px] font-medium text-zinc-900 mb-1">Method A</h3>
+      <h3 class="text-[15px] font-medium text-zinc-900 mb-1 flex items-center gap-1.5">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+          <path d="M7 1.5L12.5 11.5H1.5L7 1.5Z" stroke="#d97706" stroke-width="1.4" stroke-linejoin="round"/>
+          <path d="M7 5.5V8" stroke="#d97706" stroke-width="1.4" stroke-linecap="round"/>
+          <circle cx="7" cy="10" r="0.6" fill="#d97706"/>
+        </svg>
+        Method A
+      </h3>
       <p class="text-[13px] text-zinc-900 leading-relaxed mb-2">Ray SOP panel projection worked, but it had a ceiling. The garment lived in world space, so any change to the avatar broke it. And placing the inputs correctly required garment knowledge the tool was meant to remove.</p>
       <video src="/videos/method_a.mp4" autoplay muted playsinline loop class="w-full rounded-lg"></video>
     </div>
 
     <div class="mt-4">
-      <h3 class="text-[15px] font-medium text-zinc-900 mb-1">Method B</h3>
+      <h3 class="text-[15px] font-medium text-zinc-900 mb-1 flex items-center gap-1.5">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+          <circle cx="7" cy="7" r="5.5" stroke="#16a34a" stroke-width="1.4"/>
+          <path d="M4.5 7L6.5 9L9.5 5" stroke="#16a34a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Method B
+      </h3>
       <p class="text-[13px] text-zinc-900 leading-relaxed mb-2">Voronoi body encoding solved both. Landmarks anyone already knows, and a garment that adapts to whatever it's placed on.</p>
       <video src="/videos/method_b.mp4" autoplay muted playsinline loop class="w-full rounded-lg"></video>
     </div>
