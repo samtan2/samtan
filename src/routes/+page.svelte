@@ -99,7 +99,7 @@
       <video src="/videos/method_b.mp4" autoplay muted playsinline loop class="w-full rounded-lg"></video>
     </div>
 
-    <p class="mt-4 text-[13px] text-zinc-900 leading-relaxed text-center">Drop in your avatar, place intuitive landmarks, start designing</p>
+    <p class="text-[12px] text-zinc-400 text-center">Drop in your avatar, place intuitive landmarks, start designing</p>
 
     <div class="mt-4">
       <h3 class="text-[15px] font-medium text-zinc-900 mb-1">Reflection</h3>
