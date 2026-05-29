@@ -57,10 +57,10 @@
   class:-translate-y-full={!showBar || !activeSection}
 >
   <div class="bg-white/80 backdrop-blur-md border-b border-zinc-100">
-    <div class="mx-auto max-w-[640px] px-6 h-10 flex items-center justify-between">
+    <div class="mx-auto max-w-[640px] px-6 h-10 grid grid-cols-3 items-center">
       <span class="text-[12px] font-medium text-zinc-900">{activeSection?.name}</span>
-      <span class="text-[10px] uppercase tracking-[0.12em] text-zinc-400">{activeSection?.tag}</span>
-      <span class="text-[11px] text-zinc-400">{activeSection?.year}</span>
+      <span class="text-[10px] uppercase tracking-[0.12em] text-zinc-400 text-center">{activeSection?.tag}</span>
+      <span class="text-[11px] text-zinc-400 text-right">{activeSection?.year}</span>
     </div>
   </div>
 </div>
