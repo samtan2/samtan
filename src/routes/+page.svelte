@@ -109,8 +109,7 @@
 
   <section id="s-eigengrasp" class="border border-zinc-200 rounded-xl px-5 py-4">
     <p class="text-[10px] uppercase tracking-[0.12em] text-zinc-400 mb-2">tool</p>
-    <h2 class="text-[15px] font-medium text-zinc-900 mb-1">eigengrasp</h2>
-    <p class="text-[13px] text-zinc-900 leading-relaxed mb-4">Most creative tools assume you know what you want before you start. Eigengrasp surfaces it first, finding the load-bearing structure of any domain before building begins. Built to establish shared ground truth between human and AI collaborators, before prompting, before anything.</p>
+    <h2 class="text-[15px] font-medium text-zinc-900 mb-3">eigengrasp</h2>
     <div class="flex gap-2 mb-2">
       <button
         onclick={() => switchSession('metagrasp')}
@@ -136,17 +135,18 @@
       style="height: 600px;"
       title="eigengrasp session replay"
     ></iframe>
+    <p class="text-[13px] text-zinc-900 leading-relaxed mt-4">Most creative tools assume you know what you want before you start. Eigengrasp surfaces it first, finding the load-bearing structure of any domain before building begins. Built to establish shared ground truth between human and AI collaborators, before prompting, before anything.</p>
   </section>
 
   <section id="s-pill" class="border border-zinc-200 rounded-xl px-5 py-4">
     <p class="text-[10px] uppercase tracking-[0.12em] text-zinc-400 mb-2">project</p>
-    <h2 class="text-[15px] font-medium text-zinc-900 mb-1">pill organizer</h2>
-    <p class="text-[13px] text-zinc-900 leading-relaxed mb-4">A self-directed brief for a pill organizer in the $20–30 range, designed for people who take their health seriously but want objects that reflect their taste. Explored bi-stable hinges, magnetic lids, removable containers, and slide-out forms across multiple sketch iterations. Material studies in wood, metal, and plastic. Two directions, one minimal, one modular.</p>
+    <h2 class="text-[15px] font-medium text-zinc-900 mb-3">pill organizer</h2>
     <img src="/pill_sketch.webp" alt="pill organizer ideation sketches" class="w-full rounded-lg mb-2 object-cover" />
-    <div class="grid grid-cols-2 gap-2">
+    <div class="grid grid-cols-2 gap-2 mb-4">
       <img src="/pill_black.webp" alt="pill organizer black render" class="w-full rounded-lg object-cover" />
       <img src="/pill_white.webp" alt="pill organizer white render" class="w-full rounded-lg object-cover" />
     </div>
+    <p class="text-[13px] text-zinc-900 leading-relaxed">A self-directed brief for a pill organizer in the $20–30 range, designed for people who take their health seriously but want objects that reflect their taste. Explored bi-stable hinges, magnetic lids, removable containers, and slide-out forms across multiple sketch iterations. Material studies in wood, metal, and plastic. Two directions, one minimal, one modular.</p>
   </section>
 
   <section id="s-work" class="border border-zinc-200 rounded-xl px-5 py-4" style="margin-top: 1.5rem;">
