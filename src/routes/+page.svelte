@@ -150,8 +150,8 @@
   </section>
 
   <section id="s-work" class="border border-zinc-200 rounded-xl px-5 py-4" style="margin-top: 1.5rem;">
-    <p class="text-[13px] text-zinc-900 leading-relaxed mb-3">
-      <a href="https://instagram.com/3ddump" target="_blank" rel="noopener" class="text-zinc-900 hover:text-zinc-600 transition-colors">@3ddump</a>
+    <p class="mb-3">
+      <a href="https://instagram.com/3ddump" target="_blank" rel="noopener" class="text-[10px] uppercase tracking-[0.12em] text-zinc-400 hover:text-zinc-600 transition-colors">@3ddump</a>
     </p>
     <div class="grid grid-cols-3 gap-2">
       {#each ['/work1.jpg','/work2.jpg','/work3.jpg','/work4.jpg','/work5.jpg','/work6.png'] as src}
@@ -161,7 +161,7 @@
       {/each}
     </div>
     <p class="mt-4 text-[13px] text-zinc-900 leading-relaxed">
-      <span class="text-[10px] uppercase tracking-[0.12em] text-zinc-400 mr-3">Recognition</span>Antoni Tudisco · Aus Taylor
+      <span class="text-[10px] uppercase tracking-[0.12em] text-zinc-400 mr-3">Recognition</span><span class="text-zinc-400">Antoni Tudisco · Aus Taylor</span>
     </p>
   </section>
 
