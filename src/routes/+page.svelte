@@ -75,7 +75,7 @@
 
   <section id="s-garment" class="border border-zinc-200 rounded-xl px-5 py-4" style="margin-top: 1.5rem;">
     <p class="text-[10px] uppercase tracking-[0.12em] text-zinc-400 mb-2">case study</p>
-    <h2 class="text-[15px] font-semibold text-zinc-900 mb-1">garment_gen</h2>
+    <h2 class="text-[15px] font-[550] text-zinc-900 mb-1">garment_gen</h2>
     <p class="text-[12px] text-zinc-400 mb-3">Built in Houdini</p>
 
     <div class="mb-4">
@@ -109,7 +109,7 @@
 
   <section id="s-eigengrasp" class="border border-zinc-200 rounded-xl px-5 py-4">
     <p class="text-[10px] uppercase tracking-[0.12em] text-zinc-400 mb-2">tool</p>
-    <h2 class="text-[15px] font-semibold text-zinc-900 mb-3">eigengrasp</h2>
+    <h2 class="text-[15px] font-[550] text-zinc-900 mb-3">eigengrasp</h2>
     <div class="flex gap-2 mb-2">
       <button
         onclick={() => switchSession('metagrasp')}
@@ -140,7 +140,7 @@
 
   <section id="s-pill" class="border border-zinc-200 rounded-xl px-5 py-4">
     <p class="text-[10px] uppercase tracking-[0.12em] text-zinc-400 mb-2">project</p>
-    <h2 class="text-[15px] font-semibold text-zinc-900 mb-3">pill organizer</h2>
+    <h2 class="text-[15px] font-[550] text-zinc-900 mb-3">pill organizer</h2>
     <img src="/pill_sketch.webp" alt="pill organizer ideation sketches" class="w-full rounded-lg mb-2 object-cover" />
     <div class="grid grid-cols-2 gap-2 mb-4">
       <img src="/pill_black.webp" alt="pill organizer black render" class="w-full rounded-lg object-cover" />
