@@ -9,17 +9,71 @@
     activeSession = key;
     egFrame?.contentWindow.postMessage({ type: 'switch', key }, '*');
   }
+
+  const SECTIONS = [
+    { id: 's-garment',     name: 'garment_gen',    tag: 'Case Study', year: '2026' },
+    { id: 's-eigengrasp',  name: 'eigengrasp',     tag: 'Tool',       year: '2026' },
+    { id: 's-pill',        name: 'pill organizer', tag: 'Project',    year: '2023' },
+    { id: 's-work',        name: '@3ddump',        tag: 'Work',       year: '2021–present' },
+  ];
+
+  let activeSection = $state(null);
+  let showBar = $state(false);
+
+  $effect(() => {
+    const observers = [];
+
+    const headerEl = document.getElementById('s-header');
+    if (headerEl) {
+      const obs = new IntersectionObserver(([entry]) => {
+        showBar = !entry.isIntersecting;
+      }, { threshold: 0 });
+      obs.observe(headerEl);
+      observers.push(obs);
+    }
+
+    const sectionEls = SECTIONS.map(s => document.getElementById(s.id)).filter(Boolean);
+    if (sectionEls.length) {
+      const obs = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const found = SECTIONS.find(s => s.id === entry.target.id);
+            if (found) activeSection = found;
+          }
+        }
+      }, { rootMargin: '-15% 0px -75% 0px' });
+      sectionEls.forEach(el => obs.observe(el));
+      observers.push(obs);
+    }
+
+    return () => observers.forEach(o => o.disconnect());
+  });
 </script>
+
+<!-- sticky header bar -->
+<div
+  class="fixed top-0 inset-x-0 z-50 transition-transform duration-200 ease-out"
+  class:translate-y-0={showBar && activeSection}
+  class:-translate-y-full={!showBar || !activeSection}
+>
+  <div class="bg-white/80 backdrop-blur-md border-b border-zinc-100">
+    <div class="mx-auto max-w-[640px] px-6 h-10 flex items-center justify-between">
+      <span class="text-[12px] font-medium text-zinc-900">{activeSection?.name}</span>
+      <span class="text-[10px] uppercase tracking-[0.12em] text-zinc-400">{activeSection?.tag}</span>
+      <span class="text-[11px] text-zinc-400">{activeSection?.year}</span>
+    </div>
+  </div>
+</div>
 
 <main class="mx-auto max-w-[640px] px-6 py-16 space-y-3">
 
-  <section class="border border-zinc-200 rounded-xl px-5 py-4">
+  <section id="s-header" class="border border-zinc-200 rounded-xl px-5 py-4">
     <h1 class="text-xl font-medium tracking-tight text-zinc-900 mb-1.5">Samuel Tan</h1>
     <p class="text-[13px] text-zinc-900 leading-relaxed">I build tools to make things I can feel but can't yet say. Most of them end up being useful to someone else too.</p>
     <p class="text-[13px] text-zinc-400 mt-3">sam@samtan.design</p>
   </section>
 
-  <section class="border border-zinc-200 rounded-xl px-5 py-4" style="margin-top: 1.5rem;">
+  <section id="s-garment" class="border border-zinc-200 rounded-xl px-5 py-4" style="margin-top: 1.5rem;">
     <p class="text-[10px] uppercase tracking-[0.12em] text-zinc-400 mb-2">case study</p>
     <h2 class="text-[15px] font-medium text-zinc-900 mb-1">garment_gen</h2>
     <p class="text-[12px] text-zinc-400 mb-3">Built in Houdini</p>
@@ -52,7 +106,7 @@
     </div>
   </section>
 
-  <section class="border border-zinc-200 rounded-xl px-5 py-4">
+  <section id="s-eigengrasp" class="border border-zinc-200 rounded-xl px-5 py-4">
     <p class="text-[10px] uppercase tracking-[0.12em] text-zinc-400 mb-2">tool</p>
     <h2 class="text-[15px] font-medium text-zinc-900 mb-1">eigengrasp</h2>
     <p class="text-[13px] text-zinc-900 leading-relaxed mb-4">Most creative tools assume you know what you want before you start. Eigengrasp surfaces it first, finding the load-bearing structure of any domain before building begins. Built to establish shared ground truth between human and AI collaborators, before prompting, before anything.</p>
@@ -83,7 +137,7 @@
     ></iframe>
   </section>
 
-  <section class="border border-zinc-200 rounded-xl px-5 py-4">
+  <section id="s-pill" class="border border-zinc-200 rounded-xl px-5 py-4">
     <p class="text-[10px] uppercase tracking-[0.12em] text-zinc-400 mb-2">project</p>
     <h2 class="text-[15px] font-medium text-zinc-900 mb-1">pill organizer</h2>
     <p class="text-[13px] text-zinc-900 leading-relaxed mb-4">A self-directed brief for a pill organizer in the $20–30 range, designed for people who take their health seriously but want objects that reflect their taste. Explored bi-stable hinges, magnetic lids, removable containers, and slide-out forms across multiple sketch iterations. Material studies in wood, metal, and plastic. Two directions, one minimal, one modular.</p>
@@ -94,9 +148,9 @@
     </div>
   </section>
 
-  <section class="border border-zinc-200 rounded-xl px-5 py-4" style="margin-top: 1.5rem;">
+  <section id="s-work" class="border border-zinc-200 rounded-xl px-5 py-4" style="margin-top: 1.5rem;">
     <p class="text-[13px] text-zinc-900 leading-relaxed mb-3">
-      <a href="https://instagram.com/3ddump" target="_blank" rel="noopener" class="text-zinc-900 hover:text-zinc-800 transition-colors">@3ddump</a>
+      <a href="https://instagram.com/3ddump" target="_blank" rel="noopener" class="text-zinc-900 hover:text-zinc-600 transition-colors">@3ddump</a>
     </p>
     <div class="grid grid-cols-3 gap-2">
       {#each ['/work1.jpg','/work2.jpg','/work3.jpg','/work4.jpg','/work5.jpg','/work6.png'] as src}
