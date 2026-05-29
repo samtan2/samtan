@@ -78,6 +78,10 @@
     <h2 class="text-[15px] font-medium text-zinc-900 mb-1">garment_gen</h2>
     <p class="text-[12px] text-zinc-400 mb-3">Built in Houdini</p>
 
+    <div class="mb-4">
+      <iframe srcdoc={garmentHtml} class="w-full rounded-lg border border-zinc-200" style="height: 480px;" title="garment_gen demo"></iframe>
+    </div>
+
     <div class="mt-4">
       <h3 class="text-[15px] font-medium text-zinc-900 mb-1">Overview</h3>
     </div>
@@ -95,10 +99,7 @@
       <video src="/videos/method_b.mp4" autoplay muted playsinline loop class="w-full rounded-lg"></video>
     </div>
 
-    <div class="mt-4">
-      <p class="text-[13px] text-zinc-900 leading-relaxed mb-2 text-center">Drop in your avatar, place intuitive landmarks, start designing</p>
-      <iframe srcdoc={garmentHtml} class="w-full rounded-lg border border-zinc-200" style="height: 480px;" title="garment_gen demo"></iframe>
-    </div>
+    <p class="mt-4 text-[13px] text-zinc-900 leading-relaxed text-center">Drop in your avatar, place intuitive landmarks, start designing</p>
 
     <div class="mt-4">
       <h3 class="text-[15px] font-medium text-zinc-900 mb-1">Reflection</h3>
