@@ -116,7 +116,7 @@
 
     <div class="mt-4">
       <h3 class="text-[15px] font-medium text-zinc-900 mb-1">Reflection</h3>
-      <p class="text-[13px] text-zinc-900 leading-relaxed">Method A required knowing where garments are constructed before you could design one. Method B replaced that with what designers already know about the body. Both methods informed what the tool needed to be, technically robust, but intuitive enough to stay out of the way. By grounding the system in what people already know, the simpler input and the most structurally sound approach were always the same decision.</p>
+      <p class="text-[13px] text-zinc-900 leading-relaxed">Method A required knowing where garments are constructed before you could design one. Method B replaced that with what designers already know about the body. Both methods informed what the tool needed to be, technically honest and intuitive enough to stay out of the way. By grounding the system in what people already know, the simpler input and the most structurally sound approach were always the same decision.</p>
     </div>
   </section>
 
