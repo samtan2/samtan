@@ -95,7 +95,7 @@
 
     <div class="mt-4">
       <h3 class="text-[15px] font-medium text-zinc-900 mb-1">Method B</h3>
-      <p class="text-[13px] text-zinc-900 leading-relaxed mb-2">Geodesic body encoding solved both. Landmarks anyone already knows, and a garment that adapts to whatever it's placed on.</p>
+      <p class="text-[13px] text-zinc-900 leading-relaxed mb-2">Voronoi body encoding solved both. Landmarks anyone already knows, and a garment that adapts to whatever it's placed on.</p>
       <video src="/videos/method_b.mp4" autoplay muted playsinline loop class="w-full rounded-lg"></video>
     </div>
 
