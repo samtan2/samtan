@@ -79,7 +79,7 @@
     <p class="text-[13px] text-zinc-400 mb-3">Built in Houdini</p>
 
     <div class="mb-4">
-      <iframe srcdoc={garmentHtml} class="w-full rounded-lg border border-zinc-200" style="height: 480px;" title="garment_gen demo"></iframe>
+      <iframe srcdoc={garmentHtml} class="w-full rounded-xl border border-zinc-200 shadow-[0_4px_20px_rgba(0,0,0,0.10)]" style="height: 480px;" title="garment_gen demo"></iframe>
     </div>
 
     <div class="mt-4">
@@ -144,7 +144,7 @@
     <iframe
       bind:this={egFrame}
       srcdoc={eigengrasHtml}
-      class="w-full rounded-lg"
+      class="w-full rounded-xl border border-zinc-200 shadow-[0_4px_20px_rgba(0,0,0,0.10)]"
       style="height: 600px;"
       title="eigengrasp session replay"
     ></iframe>
