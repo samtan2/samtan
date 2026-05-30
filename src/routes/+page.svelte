@@ -79,7 +79,9 @@
     <p class="text-[13px] text-zinc-400 mb-3">Built in Houdini</p>
 
     <div class="mb-4">
-      <iframe srcdoc={garmentHtml} class="w-full rounded-xl border border-zinc-200 shadow-[0_16px_48px_rgba(0,0,0,0.35)]" style="height: 480px;" title="garment_gen demo"></iframe>
+      <div class="rounded-xl overflow-hidden" style="border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 16px 48px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.2);">
+        <iframe srcdoc={garmentHtml} class="w-full block" style="height: 480px;" title="garment_gen demo"></iframe>
+      </div>
     </div>
 
     <div class="mt-4">
@@ -141,13 +143,15 @@
         class:text-zinc-400={activeSession !== 'human_signals'}
       >human signals</button>
     </div>
-    <iframe
-      bind:this={egFrame}
-      srcdoc={eigengrasHtml}
-      class="w-full rounded-xl border border-zinc-200 shadow-[0_16px_48px_rgba(0,0,0,0.35)]"
-      style="height: 600px;"
-      title="eigengrasp session replay"
-    ></iframe>
+    <div class="rounded-xl overflow-hidden" style="border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 16px 48px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.2);">
+      <iframe
+        bind:this={egFrame}
+        srcdoc={eigengrasHtml}
+        class="w-full block"
+        style="height: 600px;"
+        title="eigengrasp session replay"
+      ></iframe>
+    </div>
     <p class="text-[14px] text-zinc-900 leading-relaxed mt-4">Most creative tools assume you know what you want before you start. Eigengrasp surfaces it first, finding the load-bearing structure of any domain before building begins. Built to establish shared ground truth between human and AI collaborators, before prompting, before anything.</p>
   </section>
 
