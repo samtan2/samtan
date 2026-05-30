@@ -79,7 +79,7 @@
     <p class="text-[13px] text-zinc-400 mb-3">Built in Houdini</p>
 
     <div class="mb-4">
-      <div class="rounded-xl overflow-hidden" style="border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 16px 48px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.2);">
+      <div class="rounded-xl overflow-hidden" style="box-shadow: 0 16px 48px rgba(0,0,0,0.35);">
         <iframe srcdoc={garmentHtml} class="w-full block" style="height: 480px;" title="garment_gen demo"></iframe>
       </div>
     </div>
@@ -143,7 +143,7 @@
         class:text-zinc-400={activeSession !== 'human_signals'}
       >human signals</button>
     </div>
-    <div class="rounded-xl overflow-hidden" style="border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 16px 48px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.2);">
+    <div class="rounded-xl overflow-hidden" style="box-shadow: 0 16px 48px rgba(0,0,0,0.35);">
       <iframe
         bind:this={egFrame}
         srcdoc={eigengrasHtml}
