@@ -112,6 +112,7 @@
       </h3>
       <p class="text-[14px] text-zinc-900 leading-relaxed mb-2">Voronoi body encoding solved both. Landmarks anyone already knows, and a garment that adapts to whatever it's placed on.</p>
       <video src="/videos/method_b.mp4" autoplay muted playsinline loop class="w-full rounded-lg"></video>
+      <img src="/method_b_result.png" alt="garment result in Houdini" class="w-full rounded-lg mt-2 object-cover" />
     </div>
 
     <p class="text-[13px] text-zinc-400 text-center">Drop in your avatar, place intuitive landmarks, start designing</p>
