@@ -77,7 +77,7 @@
     <p class="text-[11px] uppercase tracking-[0.12em] text-zinc-400 mb-2">case study</p>
     <h2 class="text-[16px] font-[520] text-zinc-900 mb-1">garment_gen</h2>
     <p class="text-[13px] text-zinc-400 mb-3">Built in Houdini</p>
-    <p class="text-[14px] text-zinc-500 leading-snug mb-4">Procedural garment-authoring system that replaces patternmaking knowledge with intuitive body-based inputs.</p>
+    <p class="text-[14px] text-zinc-900 leading-snug mb-4">Procedural garment-authoring system that replaces patternmaking knowledge with intuitive body-based inputs.</p>
 
     <div class="mb-4">
       <div class="rounded-xl overflow-hidden" style="box-shadow: 0 16px 48px rgba(0,0,0,0.35);">
@@ -127,7 +127,7 @@
   <section id="s-eigengrasp" class="border border-zinc-200 rounded-xl px-5 py-4">
     <p class="text-[11px] uppercase tracking-[0.12em] text-zinc-400 mb-2">tool</p>
     <h2 class="text-[16px] font-[520] text-zinc-900 mb-1">eigengrasp</h2>
-    <p class="text-[14px] text-zinc-500 leading-snug mb-4">Ai-assisted discovery tool that identifies the critical variables governing a system before planning or execution begins.</p>
+    <p class="text-[14px] text-zinc-900 leading-snug mb-4">Ai-assisted discovery tool that identifies the critical variables governing a system before planning or execution begins.</p>
     <div class="flex gap-2 mb-2">
       <button
         onclick={() => switchSession('metagrasp')}
@@ -161,7 +161,7 @@
   <section id="s-pill" class="border border-zinc-200 rounded-xl px-5 py-4">
     <p class="text-[11px] uppercase tracking-[0.12em] text-zinc-400 mb-2">project</p>
     <h2 class="text-[16px] font-[520] text-zinc-900 mb-1">pill organizer</h2>
-    <p class="text-[14px] text-zinc-500 leading-snug mb-4">Product design exploration of how health products can better reflect personal identity and daily ritual.</p>
+    <p class="text-[14px] text-zinc-900 leading-snug mb-4">Product design exploration of how health products can better reflect personal identity and daily ritual.</p>
     <img src="/pill_sketch.webp" alt="pill organizer ideation sketches" class="w-full rounded-lg mb-2 object-cover" />
     <div class="grid grid-cols-2 gap-2 mb-4">
       <img src="/pill_black.webp" alt="pill organizer black render" class="w-full rounded-lg object-cover" />
