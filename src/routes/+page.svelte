@@ -195,8 +195,8 @@
         class="absolute top-3 left-3 w-6 h-6 rounded-full border border-white/40 bg-black/20 text-white/70 text-[11px] flex items-center justify-center hover:bg-black/40 transition-colors cursor-pointer"
       >?</button>
       <div
-        class="absolute inset-0 flex items-center justify-center px-8 transition-opacity duration-400 pointer-events-none"
-        style="opacity: {showAbout ? 1 : 0}"
+        class="absolute inset-0 flex items-center justify-center px-8 bg-black/50 pointer-events-none"
+        style="opacity: {showAbout ? 1 : 0}; transition: opacity 350ms ease;"
       >
         <p class="text-[13px] text-white text-center leading-relaxed">Samuel Tan builds at the intersection of structure and feeling. Five years of self-directed 3D work across procedural systems, industrial design, and art. Based in Fairfield, CA.</p>
       </div>
