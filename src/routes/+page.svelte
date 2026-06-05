@@ -186,4 +186,9 @@
     </p>
   </section>
 
+  <section class="border border-zinc-200 rounded-xl px-5 py-4">
+    <img src="/about.jpg" alt="Samuel Tan" class="w-full rounded-lg mb-4 object-cover" />
+    <p class="text-[14px] text-zinc-900 leading-relaxed">Samuel Tan builds at the intersection of structure and feeling. Five years of self-directed 3D work across procedural systems, industrial design, and art. Based in Fairfield, CA.</p>
+  </section>
+
 </main>
