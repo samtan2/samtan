@@ -190,6 +190,7 @@
   <section class="border border-zinc-200 rounded-xl overflow-hidden">
     <div class="relative cursor-pointer" onclick={() => showAbout = !showAbout}>
       <img src="/about.jpg" alt="Samuel Tan" class="w-full block object-cover" />
+      <div class="absolute top-3 left-3 w-6 h-6 rounded-full border border-white/40 bg-black/20 text-white/70 text-[11px] flex items-center justify-center pointer-events-none">?</div>
       <div
         class="absolute inset-0 flex items-center justify-center px-8 bg-black/50 pointer-events-none"
         style="opacity: {showAbout ? 1 : 0}; transition: opacity 350ms ease;"
