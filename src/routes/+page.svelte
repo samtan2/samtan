@@ -191,6 +191,7 @@
     <div class="relative cursor-pointer" onclick={() => showAbout = !showAbout}>
       <img src="/about.jpg" alt="Samuel Tan" class="w-full block object-cover" />
       <div class="absolute top-3 left-3 w-6 h-6 rounded-full border border-white/40 bg-black/20 text-white/70 text-[11px] flex items-center justify-center pointer-events-none" style="opacity: {showAbout ? 0 : 1}; transition: opacity 350ms ease;">?</div>
+      <div class="absolute bottom-3 left-4 pointer-events-none text-[11px] leading-snug" style="color: rgba(255,255,255,0.6);">Painting by<br />Oliver Jackson</div>
       <div
         class="absolute inset-0 flex items-center justify-center px-8 bg-black/50 pointer-events-none"
         style="opacity: {showAbout ? 1 : 0}; transition: opacity 350ms ease;"
