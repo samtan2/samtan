@@ -198,7 +198,7 @@
         <div class="absolute inset-0 flex items-center justify-center px-8">
           <p class="text-[13px] text-white text-center leading-relaxed">Samuel Tan builds at the intersection of structure and feeling. Five years of self-directed 3D work across procedural systems, industrial design, and art. Based in Fairfield, CA.</p>
         </div>
-        <div class="absolute bottom-3 left-4 text-[11px] leading-snug" style="color: rgba(255,255,255,0.4);">Painting by<br />Oliver Jackson</div>
+        <div class="absolute bottom-3 left-4 text-[11px] leading-snug" style="color: rgba(255,255,255,0.2);">Painting by<br />Oliver Jackson</div>
       </div>
     </div>
   </section>
