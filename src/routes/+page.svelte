@@ -87,7 +87,7 @@
     </div>
 
     <div class="mt-4">
-      <h3 class="text-[16px] font-medium text-zinc-900 mb-1">Overview</h3>
+      <h3 class="text-[16px] font-medium text-zinc-900 mb-1">Problem</h3>
     </div>
     <p class="text-[14px] text-zinc-900 leading-relaxed mb-4">A friend studying fashion and I both used pattern making software and hit the same wall. Powerful tools, but they ask you to think like a patternmaker before you can think like a designer. He introduced me to the sloper, the foundational pattern every garment starts from, derived from body measurements with everything else following from that. Garments already have a procedural system underneath them. I built a tool that applies the same logic anyone can use that's stable enough to build further on.</p>
 

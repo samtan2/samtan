@@ -1968,14 +1968,16 @@ borderDotGroup.visible = false;
 seedDots.forEach(d => { d.visible = false; });
 poleCageGroup.children.forEach(c => { c.visible = false; });
 
-// Placement phase: 0.0 – 0.30, main reveal: 0.30 – 1.0
+// Placement phase: 0.0 – 0.35, main reveal: 0.35 – 1.0
 // Named seeds appear one by one with labels
 const PLACEMENT_SEEDS = [
   { idx: 2,       label: 'head top'   },
   { idx: 5,       label: 'neck'       },
+  { idx: 3,       label: 'chest'      },
+  { idx: 4,       label: 'underarm'   },
   { idx: 0,       label: 'shoulder'   },
-  { idx: 14,      label: 'elbow'      },
-  { idx: 12,      label: 'fingertip'      },
+  { idx: 14,      label: 'side chest' },
+  { idx: 12,      label: 'arm'        },
   { idx: 6,       label: 'waist'      },
   { idx: 7,       label: 'hips'       },
   { idx: 8,       label: 'knee'       },
@@ -1985,15 +1987,17 @@ const PLACEMENT_END = 0.35; // fraction of total where placement ends
 const PLACE_PER = PLACEMENT_END / PLACEMENT_SEEDS.length; // time per seed
 
 const REVEAL_LABELS = [
-  { t: 0.00, text: 'placing head top' },
-  { t: 0.04, text: 'placing neck' },
-  { t: 0.08, text: 'placing shoulder' },
-  { t: 0.12, text: 'placing elbow' },
-  { t: 0.16, text: 'placing fingertip' },
-  { t: 0.20, text: 'placing waist' },
-  { t: 0.24, text: 'placing hips' },
-  { t: 0.28, text: 'placing knee' },
-  { t: 0.32, text: 'placing foot' },
+  { t: 0.00, text: 'placing head top'   },
+  { t: 0.03, text: 'placing neck'       },
+  { t: 0.06, text: 'placing chest'     },
+  { t: 0.10, text: 'placing underarm'  },
+  { t: 0.13, text: 'placing shoulder'  },
+  { t: 0.16, text: 'placing side chest'},
+  { t: 0.19, text: 'placing arm'        },
+  { t: 0.22, text: 'placing waist'      },
+  { t: 0.25, text: 'placing hips'       },
+  { t: 0.29, text: 'placing knee'       },
+  { t: 0.32, text: 'placing foot'       },
   { t: 0.35, text: 'computing voronoi regions' },
   { t: 0.46, text: 'tracing region borders' },
   { t: 0.57, text: 'projecting cage poles' },
