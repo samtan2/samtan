@@ -1,6 +1,8 @@
 <script>
   import garmentHtml from '$lib/garment.html?raw';
   import eigengrasHtml from '$lib/eigengrasp_session.html?raw';
+  import eigengrasMetabolicHtml from '$lib/eigengrasp_metabolic.html?raw';
+  import metabolicStaticHtml from '$lib/metabolic_static.html?raw';
 
   let egFrame = $state();
   let activeSession = $state('metagrasp');
@@ -155,6 +157,14 @@
         style="height: 600px;"
         title="eigengrasp session replay"
       ></iframe>
+    </div>
+    <div class="grid grid-cols-2 gap-3 mt-3">
+      <div class="rounded-xl overflow-hidden" style="box-shadow: 0 16px 48px rgba(0,0,0,0.35);">
+        <iframe srcdoc={eigengrasMetabolicHtml} class="w-full block" style="height: 400px;" title="eigengrasp metabolic"></iframe>
+      </div>
+      <div class="rounded-xl overflow-hidden" style="box-shadow: 0 16px 48px rgba(0,0,0,0.35);">
+        <iframe srcdoc={metabolicStaticHtml} class="w-full block" style="height: 400px;" title="metabolic static"></iframe>
+      </div>
     </div>
     <p class="text-[14px] text-zinc-900 leading-relaxed mt-4">Most creative tools assume you know what you want before you start. Eigengrasp surfaces it first, finding the load-bearing structure of any domain before building begins. Built to establish shared ground truth between human and AI collaborators, before prompting, before anything.</p>
   </section>
