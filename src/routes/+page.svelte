@@ -1,8 +1,7 @@
 <script>
   import garmentHtml from '$lib/garment.html?raw';
   import eigengrasHtml from '$lib/eigengrasp_session.html?raw';
-  import eigengrasMetabolicHtml from '$lib/eigengrasp_metabolic.html?raw';
-  import metabolicStaticHtml from '$lib/metabolic_static.html?raw';
+  import eigengrasRevealHtml from '$lib/eigengrasp_reveal.html?raw';
 
   let egFrame = $state();
   let activeSession = $state('metagrasp');
@@ -148,24 +147,30 @@
         class:border-zinc-300={activeSession !== 'human_signals'}
         class:text-zinc-400={activeSession !== 'human_signals'}
       >human signals</button>
+      <button
+        onclick={() => switchSession('metabolic_tracker')}
+        class="text-[11px] uppercase tracking-[0.1em] px-3 py-1 rounded border transition-colors cursor-pointer bg-transparent"
+        class:border-zinc-800={activeSession === 'metabolic_tracker'}
+        class:text-zinc-800={activeSession === 'metabolic_tracker'}
+        class:border-zinc-300={activeSession !== 'metabolic_tracker'}
+        class:text-zinc-400={activeSession !== 'metabolic_tracker'}
+      >metabolic tracker</button>
     </div>
-    <div class="rounded-xl overflow-hidden" style="box-shadow: 0 16px 48px rgba(0,0,0,0.35);">
-      <iframe
-        bind:this={egFrame}
-        srcdoc={eigengrasHtml}
-        class="w-full block"
-        style="height: 600px;"
-        title="eigengrasp session replay"
-      ></iframe>
-    </div>
-    <div class="grid grid-cols-2 gap-3 mt-3">
+    {#if activeSession !== 'metabolic_tracker'}
       <div class="rounded-xl overflow-hidden" style="box-shadow: 0 16px 48px rgba(0,0,0,0.35);">
-        <iframe srcdoc={eigengrasMetabolicHtml} class="w-full block" style="height: 400px;" title="eigengrasp metabolic"></iframe>
+        <iframe
+          bind:this={egFrame}
+          srcdoc={eigengrasHtml}
+          class="w-full block"
+          style="height: 600px;"
+          title="eigengrasp session replay"
+        ></iframe>
       </div>
+    {:else}
       <div class="rounded-xl overflow-hidden" style="box-shadow: 0 16px 48px rgba(0,0,0,0.35);">
-        <iframe srcdoc={metabolicStaticHtml} class="w-full block" style="height: 400px;" title="metabolic static"></iframe>
+        <iframe srcdoc={eigengrasRevealHtml} class="w-full block" style="height: 600px;" title="metabolic tracker"></iframe>
       </div>
-    </div>
+    {/if}
     <p class="text-[14px] text-zinc-900 leading-relaxed mt-4">Most creative tools assume you know what you want before you start. Eigengrasp surfaces it first, finding the load-bearing structure of any domain before building begins. Built to establish shared ground truth between human and AI collaborators, before prompting, before anything.</p>
   </section>
 

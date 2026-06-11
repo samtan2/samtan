@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>eigengrasp — metabolic tracker reveal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0c0d;--bg3:#1a1a1d;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#e2e2df;--muted:#7a7a76;--dim:#3a3a38;
+  --locked:#4ade80;--active:#60a5fa;--open:#fbbf24;
+  --mono:'DM Mono',monospace;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--mono);font-size:12px;overflow:hidden}
+.layout{display:grid;grid-template-columns:1fr 1fr;height:100vh}
+
+/* LEFT */
+.left{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.pane-head{padding:9px 15px;border-bottom:1px solid var(--border);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);flex-shrink:0;display:flex;justify-content:space-between;align-items:center}
+.param-stage{flex:1;display:flex;flex-direction:column;justify-content:center;padding:24px 20px;overflow:hidden}
+.param-card{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:14px 16px;opacity:0;transform:translateY(12px);transition:opacity 0.5s ease,transform 0.5s ease}
+.param-card.visible{opacity:1;transform:translateY(0)}
+.param-card.fading{opacity:0;transform:translateY(-8px);transition:opacity 0.35s ease,transform 0.35s ease}
+.param-tag{font-size:9px;letter-spacing:.06em;margin-bottom:5px;display:block}
+.param-tag.goal{color:var(--locked)}
+.param-name{font-size:13px;color:var(--text);line-height:1.4;margin-bottom:7px}
+.param-why{font-size:10px;color:var(--muted);line-height:1.55}
+.param-value{font-size:10px;color:var(--active);margin-top:7px;padding:3px 7px;background:var(--bg);border-radius:3px;border:1px solid var(--border)}
+.param-options{display:flex;flex-wrap:wrap;gap:3px;margin-top:7px}
+.opt-chip{font-size:9px;padding:2px 7px;border-radius:3px;border:1px solid var(--border);color:var(--dim)}
+.opt-chip.hi{border-color:var(--open);color:var(--open);background:rgba(251,191,36,0.07)}
+.progress-dots{display:flex;justify-content:center;gap:6px;padding:12px;flex-shrink:0}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--dim);transition:background 0.3s}
+.dot.active{background:var(--active)}
+.dot.done{background:var(--locked)}
+
+/* RIGHT */
+.right{display:flex;flex-direction:column;overflow:hidden;background:#111110;font-family:"Inter","Helvetica Neue",sans-serif}
+.right .pane-head{background:#0a0a09;font-family:var(--mono)}
+.widget-scroll{flex:1;overflow-y:auto;padding:14px}
+
+/* each block hidden until surfaced */
+.wb{opacity:0;transform:translateY(8px);transition:opacity 0.55s ease,transform 0.55s ease;pointer-events:none}
+.wb.on{opacity:1;transform:translateY(0);pointer-events:auto}
+
+/* ring */
+.w-ring-wrap{display:flex;justify-content:center;margin-bottom:12px}
+.w-ring-container{position:relative;width:150px;height:150px}
+.w-ring-svg{width:150px;height:150px}
+.w-ring-track{fill:none;stroke:#1a1a18;stroke-width:9}
+.w-ring-fill{fill:none;stroke-width:9;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset 1.8s ease,stroke 1s ease;stroke:#1d9e75;stroke-dasharray:440;stroke-dashoffset:440}
+.w-ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.w-elapsed{font-size:26px;font-weight:500;color:#e8e6e0;letter-spacing:-0.02em;line-height:1;transition:all 0.6s}
+.w-rstate{font-size:10px;color:#888780;margin-top:2px}
+.w-rnext{font-size:9px;color:#444441;margin-top:1px}
+.w-badge{font-size:9px;font-weight:500;padding:2px 8px;border-radius:99px;margin-top:5px;transition:all 0.5s;display:inline-block}
+.wb-fast{background:#26215c;color:#afa9ec}
+.wb-refeed{background:#412402;color:#ef9f27}
+.wb-idle{background:#2c2c2a;color:#888780}
+
+/* buttons */
+.w-btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.w-btn{padding:8px 10px;border-radius:7px;font-size:11px;font-family:inherit;cursor:pointer;border:0.5px solid #2c2c2a;background:transparent;color:#888780;transition:all 0.3s}
+.w-btn.fast-run{border-color:#0f6e56;background:#04342c;color:#5dcaa5}
+.w-btn.refeed-run{border-color:#854f0b;background:#1a1108;color:#ef9f27}
+.w-hint{font-size:9px;color:#444441;text-align:center;margin-bottom:8px}
+
+/* sliders */
+.w-slider-row{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+.w-slider-label{font-size:10px;color:#444441;min-width:44px}
+.w-slider-row input{flex:1}
+.w-slider-val{font-size:11px;font-weight:500;color:#e8e6e0;min-width:26px;text-align:right}
+.w-slider-hint{font-size:10px;color:#534ab7;margin-bottom:10px}
+
+/* string */
+.w-slabel{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#444441;margin-bottom:5px;margin-top:2px}
+.w-string{border:0.5px solid #2c2c2a;border-radius:7px;padding:10px 12px;margin-bottom:10px;background:#161614}
+.w-string-text{font-size:13px;font-weight:500;color:#e8e6e0;min-height:18px}
+.w-string-div{height:0.5px;background:#2c2c2a;margin:6px 0}
+.w-string-meta{font-size:10px;color:#444441}
+
+/* arc */
+.w-arc{display:flex;align-items:center;margin-bottom:10px}
+.w-arc-step{display:flex;flex-direction:column;align-items:center;flex:1}
+.w-arc-dot{width:7px;height:7px;border-radius:50%;background:#2c2c2a;border:1.5px solid #2c2c2a;transition:all 0.4s}
+.w-arc-dot.done{background:#1d9e75;border-color:#1d9e75}
+.w-arc-dot.cur{background:#534ab7;border-color:#534ab7;width:10px;height:10px}
+.w-arc-dot.rcur{background:#ef9f27;border-color:#ef9f27;width:10px;height:10px}
+.w-arc-line{flex:1;height:1px;background:#2c2c2a;margin-top:-4px;transition:background 0.5s}
+.w-arc-line.done{background:#1d9e75}
+.w-arc-label{font-size:8px;color:#333331;margin-top:3px;text-align:center;white-space:nowrap;overflow:hidden;max-width:36px;text-overflow:ellipsis;transition:all 0.3s}
+.w-arc-label.done{color:#1d9e75}
+.w-arc-label.cur{color:#534ab7;font-weight:500}
+.w-arc-label.rcur{color:#ef9f27;font-weight:500}
+
+/* state block */
+.w-state-block{border:0.5px solid #2c2c2a;border-radius:7px;padding:10px 12px;margin-bottom:10px;background:#161614;transition:border-color 0.4s}
+.w-state-name{font-size:13px;font-weight:500;color:#e8e6e0;margin-bottom:3px}
+.w-state-desc{font-size:11px;color:#888780;line-height:1.5}
+
+/* compounds */
+.w-compound-list{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+.w-compound{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:5px;border:0.5px solid #2c2c2a;background:#161614;opacity:0;transform:translateY(4px);transition:opacity 0.3s,transform 0.3s}
+.w-compound.vis{opacity:1;transform:translateY(0)}
+.w-compound-name{font-size:11px;font-weight:500;color:#e8e6e0}
+.w-compound-why{font-size:9px;color:#444441;margin-top:1px}
+
+/* controls */
+.w-controls{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.w-ctrl{display:flex;flex-direction:column;gap:3px}
+.w-ctrl label{font-size:9px;color:#444441;letter-spacing:.06em;text-transform:uppercase}
+.w-ctrl label.lit{color:#888780}
+.w-pill-group{display:flex;gap:4px}
+.w-pill{flex:1;padding:5px 4px;border-radius:5px;border:0.5px solid #2c2c2a;background:transparent;font-size:10px;color:#444441;font-family:inherit;cursor:pointer;text-align:center;transition:all 0.2s}
+.w-pill.on-refeed{border-color:#854f0b;background:#1a1108;color:#ef9f27}
+.w-pill.on-fast{border-color:#534ab7;background:#1a1926;color:#afa9ec}
+
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#2c2c2a;border-radius:2px}
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- LEFT: param reveal -->
+  <div class="left">
+    <div class="pane-head">
+      <span>eigengrasp → metabolic</span>
+      <span id="step-counter" style="color:var(--dim)">1 / 6</span>
+    </div>
+    <div class="param-stage" id="param-stage"></div>
+    <div class="progress-dots" id="dots"></div>
+  </div>
+
+  <!-- RIGHT: widget assembles in cockpit order -->
+  <div class="right">
+    <div class="pane-head">
+      <span>metabolic tracker</span>
+      <span style="font-family:var(--mono);color:var(--dim)" id="w-clock">7:14 AM</span>
+    </div>
+    <div class="widget-scroll" id="widget-scroll">
+
+      <!-- 1. RING — surfaces with elapsed hours param -->
+      <div class="wb" id="wb-ring">
+        <div class="w-ring-wrap">
+          <div class="w-ring-container">
+            <svg class="w-ring-svg" viewBox="0 0 150 150">
+              <circle class="w-ring-track" cx="75" cy="75" r="70"/>
+              <circle class="w-ring-fill" id="w-ring-fill" cx="75" cy="75" r="70"/>
+            </svg>
+            <div class="w-ring-inner">
+              <div class="w-elapsed" id="w-elapsed">0h</div>
+              <div class="w-rstate" id="w-rstate">—</div>
+              <div class="w-rnext" id="w-rnext"></div>
+              <span class="w-badge wb-idle" id="w-badge">idle</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. BUTTONS + SLIDERS — surfaces with ring_phase param -->
+      <div class="wb" id="wb-controls">
+        <div class="w-btn-row">
+          <button class="w-btn" id="w-fast-btn">start fast</button>
+          <button class="w-btn" id="w-refeed-btn">start refeed</button>
+        </div>
+        <div class="w-hint" id="w-hint">pick a phase to begin</div>
+        <div class="w-slider-row">
+          <span class="w-slider-label">fast</span>
+          <input type="range" min="0" max="72" value="0" style="accent-color:#534ab7"/>
+          <span class="w-slider-val" id="w-fast-val">0h</span>
+        </div>
+        <div class="w-slider-row">
+          <span class="w-slider-label">refeed</span>
+          <input type="range" min="0" max="24" value="6" style="accent-color:#ef9f27"/>
+          <span class="w-slider-val">6h</span>
+        </div>
+        <div class="w-slider-hint" id="w-slider-hint">drag to preview</div>
+      </div>
+
+      <!-- 3. STRING — surfaces with current_heading param -->
+      <div class="wb" id="wb-string">
+        <div class="w-slabel">the string</div>
+        <div class="w-string">
+          <div class="w-string-text" id="w-string-text"></div>
+          <div class="w-string-div"></div>
+          <div class="w-string-meta" id="w-string-meta">no heading set</div>
+        </div>
+      </div>
+
+      <!-- 4. ARC — surfaces with arc_state param -->
+      <div class="wb" id="wb-arc">
+        <div class="w-slabel">arc</div>
+        <div class="w-arc" id="w-arc"></div>
+        <div class="w-slabel" style="margin-top:6px">current state</div>
+        <div class="w-state-block" id="w-state-block">
+          <div class="w-state-name" id="w-state-name">—</div>
+          <div class="w-state-desc" id="w-state-desc"></div>
+        </div>
+      </div>
+
+      <!-- 5. STACK — surfaces with compound_routing param -->
+      <div class="wb" id="wb-compounds">
+        <div class="w-slabel">stack</div>
+        <div class="w-compound-list" id="w-compounds"></div>
+      </div>
+
+      <!-- 6. CONTROLS — surfaces with meal_calibration param -->
+      <div class="wb" id="wb-meal">
+        <div class="w-controls">
+          <div class="w-ctrl">
+            <label id="w-meal-label">meal size</label>
+            <div class="w-pill-group">
+              <button class="w-pill" id="wp-light">light</button>
+              <button class="w-pill" id="wp-normal">normal</button>
+              <button class="w-pill" id="wp-big">big</button>
+            </div>
+          </div>
+          <div class="w-ctrl">
+            <label id="w-train-label">training</label>
+            <div class="w-pill-group">
+              <button class="w-pill" id="wt-none">none</button>
+              <button class="w-pill" id="wt-mod">mod</button>
+              <button class="w-pill" id="wt-hard">hard</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const CIRC = 2*Math.PI*70; // 439.8
+
+const ARC_STATES = [
+  {id:'initiate',name:'initiate',threshold:0,desc:'entering the fast. appetite pulling back.',compounds:[{name:'black coffee',why:'appetite suppression'},{name:'sparkling water',why:'keeps hunger quiet'}]},
+  {id:'sharpen',name:'sharpen',threshold:4,desc:'glycogen clearing. focus coming online.',compounds:[{name:'green tea',why:'clean focus, l-theanine'},{name:'salt + water',why:'electrolyte baseline'}]},
+  {id:'pre',name:'pre-workout',threshold:12,desc:'loading up before the session.',compounds:[{name:'banana',why:'quick carbs, potassium'},{name:'creatine',why:'strength output'}]},
+  {id:'active',name:'active',threshold:14,desc:'in the session. water only.',compounds:[]},
+  {id:'post',name:'post-workout',threshold:15,desc:'training done. bring it down.',compounds:[{name:'eggs',why:'complete protein'},{name:'tart cherry juice',why:'soreness reduction'}]},
+  {id:'recover',name:'recover',threshold:16,desc:'minerals low. support the reset.',compounds:[{name:'beef + salt',why:'protein + sodium'},{name:'dark leafy greens',why:'magnesium, iron'}]},
+];
+
+const STEPS = [
+  {
+    tag:'goal', name:'Fast elapsed hours (ring timer)',
+    why:'Real-time axis — driven by the ring timer, not manual input. Everything downstream (zone, arc position, compound routing) derives from this.',
+    value:null, options:null, surface:'wb-ring', action:'ring'
+  },
+  {
+    tag:'goal', name:'ring_phase',
+    why:'The ring is continuous across both fast and refeed phases. At break-fast it transitions color and direction into refeed mode. One ring, two phases, no hard stop.',
+    value:null, options:['fasting','refeed'], surface:'wb-controls', action:'controls'
+  },
+  {
+    tag:'goal', name:'current_heading',
+    why:'The "string" — single orienting objective that gives the kite state direction. Not a task list, just the compass heading for this fast window.',
+    value:null, options:null, surface:'wb-string', action:'heading'
+  },
+  {
+    tag:'goal', name:'Arc state (auto-inferred from hours + thresholds)',
+    why:'Derived from elapsed hours against per-fast thresholds. Arc advances automatically — each state name, description, and compound list updates in sync.',
+    value:null, options:['initiate','sharpen','pre-workout','active','post-workout','recover'],
+    surface:'wb-arc', action:'arc'
+  },
+  {
+    tag:'goal', name:'compound_routing',
+    why:'Compounds belong to states, not to hours. When the arc transitions to a new state, the compound list updates automatically. Checks clear on phase change.',
+    value:'"compounds render per-state · clear on phase change · persist within phase"',
+    options:null, surface:'wb-compounds', action:'compounds'
+  },
+  {
+    tag:'goal', name:'meal_calibration',
+    why:'Meal size at break-fast sets the refeed window length. Big meal multiplies refeed thresholds by 1.4x — pre-calibrates when "ready" arrives and the next fast arc.',
+    value:null, options:['moderate_1x','big_1.4x','very_big_1.8x'],
+    surface:'wb-meal', action:'meal'
+  },
+];
+
+let currentStep=0, arcIdx=2;
+function wait(ms){return new Promise(r=>setTimeout(r,ms))}
+
+// dots
+const dotsEl=document.getElementById('dots');
+STEPS.forEach((_,i)=>{const d=document.createElement('div');d.className='dot';d.id='dot-'+i;dotsEl.appendChild(d);});
+function updateDots(idx){
+  STEPS.forEach((_,i)=>{const d=document.getElementById('dot-'+i);d.className='dot'+(i<idx?' done':i===idx?' active':'');});
+  document.getElementById('step-counter').textContent=(idx+1)+' / '+STEPS.length;
+}
+
+function setRing(h,maxH,refeed){
+  const ring=document.getElementById('w-ring-fill');
+  ring.style.strokeDashoffset=CIRC-CIRC*Math.min(h/maxH,1);
+  ring.style.stroke=refeed?'#ef9f27':'#1d9e75';
+  document.getElementById('w-elapsed').textContent=Math.round(h)+'h';
+  document.getElementById('w-rstate').textContent=refeed?'refeed':'fasting';
+  const badge=document.getElementById('w-badge');
+  badge.className='w-badge '+(refeed?'wb-refeed':'wb-fast');
+  badge.textContent=refeed?'refeed':'fasting';
+}
+
+function buildArc(curIdx,isR){
+  const arc=document.getElementById('w-arc');arc.innerHTML='';
+  ARC_STATES.forEach((s,i)=>{
+    if(i>0){const l=document.createElement('div');l.className='w-arc-line'+(!isR&&i<=curIdx?' done':'');arc.appendChild(l);}
+    const step=document.createElement('div');step.className='w-arc-step';
+    const dot=document.createElement('div');
+    dot.className='w-arc-dot'+(!isR?(i<curIdx?' done':i===curIdx?' cur':''):(i===0?' rcur':''));
+    const lbl=document.createElement('div');
+    lbl.className='w-arc-label'+(!isR?(i<curIdx?' done':i===curIdx?' cur':''):(i===0?' rcur':''));
+    lbl.textContent=s.name;
+    step.appendChild(dot);step.appendChild(lbl);arc.appendChild(step);
+  });
+}
+
+function setStateBlock(s){
+  document.getElementById('w-state-name').textContent=s.name;
+  document.getElementById('w-state-desc').textContent=s.desc;
+}
+
+function buildCompounds(stateIdx, withChecks){
+  const list=document.getElementById('w-compounds');list.innerHTML='';
+  const cs=ARC_STATES[stateIdx]?.compounds||[];
+  if(!cs.length){
+    const empty=document.createElement('div');
+    empty.style.cssText='font-size:10px;color:#333331;padding:3px 0;opacity:0;transform:translateY(4px);transition:opacity 0.3s,transform 0.3s';
+    empty.textContent='no compounds this state';
+    list.appendChild(empty);
+    setTimeout(()=>{empty.style.opacity='1';empty.style.transform='translateY(0)'},60);
+    return;
+  }
+  cs.forEach((c,i)=>{
+    const row=document.createElement('div');row.className='w-compound';
+    const checkHtml=withChecks?`<div id="wchk-${i}" style="width:18px;height:18px;border-radius:50%;border:1.5px solid #2c2c2a;flex-shrink:0;transition:all 0.25s"></div>`:'';
+    row.innerHTML=`<div style="flex:1"><div class="w-compound-name">${c.name}</div><div class="w-compound-why">${c.why}</div></div>${checkHtml}`;
+    list.appendChild(row);
+    setTimeout(()=>row.classList.add('vis'),i*90+60);
+  });
+}
+
+function surface(id){const el=document.getElementById(id);if(el)el.classList.add('on');}
+
+async function doAction(action){
+  switch(action){
+    case 'ring':{
+      await wait(400);
+      const ring=document.getElementById('w-ring-fill');
+      ring.style.strokeDashoffset=CIRC;ring.style.stroke='#1d9e75';
+      await wait(100);
+      setRing(12,18,false);
+      document.getElementById('w-rnext').textContent='→ active in 1h 53m';
+      break;
+    }
+    case 'controls':{
+      await wait(400);
+      document.getElementById('w-fast-btn').textContent='stop fast';
+      document.getElementById('w-fast-btn').className='w-btn fast-run';
+      document.getElementById('w-hint').textContent='18h window · ends ~1:14 AM';
+      document.getElementById('w-slider-hint').textContent='fast running · refeed preview free';
+      document.getElementById('w-fast-val').textContent='12h';
+      break;
+    }
+    case 'heading':{
+      await wait(300);
+      const text=document.getElementById('w-string-text');
+      const phrase='mental clarity · no distractions';
+      for(let i=0;i<phrase.length;i++){text.textContent+=phrase[i];await wait(42);}
+      document.getElementById('w-string-meta').textContent='clarity · pre-workout';
+      break;
+    }
+    case 'arc':{
+      buildArc(-1,false);
+      setStateBlock({name:'—',desc:''});
+      for(let i=0;i<=arcIdx;i++){
+        await wait(300);
+        buildArc(i,false);
+        setStateBlock(ARC_STATES[i]);
+      }
+      break;
+    }
+    case 'compounds':{
+      buildCompounds(arcIdx, true);
+      await wait(800);
+      const cs=ARC_STATES[arcIdx]?.compounds||[];
+      for(let i=0;i<cs.length;i++){
+        await wait(550);
+        const chk=document.getElementById('wchk-'+i);
+        if(chk){
+          chk.style.background='#1d9e75';
+          chk.style.borderColor='#1d9e75';
+          chk.style.display='flex';
+          chk.style.alignItems='center';
+          chk.style.justifyContent='center';
+          chk.innerHTML='<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><polyline points="2,5 4,7.5 8,2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        }
+      }
+      break;
+    }
+    case 'meal':{
+      document.getElementById('w-meal-label').className='lit';
+      document.getElementById('w-train-label').className='lit';
+      await wait(700);
+      // simulate clicking big
+      document.getElementById('wp-big').className='w-pill on-refeed';
+      setRing(12,24,false);
+      await wait(1100);
+      // revert to normal
+      document.getElementById('wp-big').className='w-pill';
+      document.getElementById('wp-normal').className='w-pill on-fast';
+      setRing(12,18,false);
+      break;
+    }
+  }
+}
+
+async function showStep(idx){
+  const stage=document.getElementById('param-stage');
+  const step=STEPS[idx];
+  const old=stage.querySelector('.param-card');
+  if(old){old.classList.remove('visible');old.classList.add('fading');await wait(360);old.remove();}
+  const card=document.createElement('div');card.className='param-card';
+  let html=`<span class="param-tag ${step.tag}">${step.tag}</span>`;
+  html+=`<div class="param-name">${step.name}</div>`;
+  html+=`<div class="param-why">${step.why}</div>`;
+  if(step.value) html+=`<div class="param-value">${step.value}</div>`;
+  if(step.options) html+=`<div class="param-options">${step.options.map((o,i)=>`<span class="opt-chip${i===0?' hi':''}">${o}</span>`).join('')}</div>`;
+  card.innerHTML=html;
+  stage.appendChild(card);
+  await wait(30);card.classList.add('visible');
+  updateDots(idx);
+  await wait(350);
+  surface(step.surface);
+  await wait(200);
+  const el=document.getElementById(step.surface);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'nearest'});
+  await wait(400);
+  await doAction(step.action);
+}
+
+let autoTimer=null;
+function scheduleNext(delay=5800){
+  clearTimeout(autoTimer);
+  autoTimer=setTimeout(async()=>{
+    currentStep=(currentStep+1)%STEPS.length;
+    if(currentStep===0) await resetAll();
+    showStep(currentStep);
+    scheduleNext();
+  },delay);
+}
+
+async function resetAll(){
+  arcIdx=2;
+  document.querySelectorAll('.wb').forEach(el=>el.classList.remove('on'));
+  const ring=document.getElementById('w-ring-fill');
+  ring.style.transition='none';ring.style.strokeDashoffset=CIRC;ring.style.stroke='#1d9e75';
+  await wait(50);ring.style.transition='stroke-dashoffset 1.8s ease,stroke 1s ease';
+  document.getElementById('w-elapsed').textContent='0h';
+  document.getElementById('w-rstate').textContent='—';
+  document.getElementById('w-rnext').textContent='';
+  document.getElementById('w-badge').className='w-badge wb-idle';
+  document.getElementById('w-badge').textContent='idle';
+  document.getElementById('w-fast-btn').textContent='start fast';
+  document.getElementById('w-fast-btn').className='w-btn';
+  document.getElementById('w-refeed-btn').textContent='start refeed';
+  document.getElementById('w-refeed-btn').className='w-btn';
+  document.getElementById('w-hint').textContent='pick a phase to begin';
+  document.getElementById('w-slider-hint').textContent='drag to preview';
+  document.getElementById('w-fast-val').textContent='0h';
+  document.getElementById('w-string-text').textContent='';
+  document.getElementById('w-string-meta').textContent='no heading set';
+  document.getElementById('w-state-name').textContent='—';
+  document.getElementById('w-state-desc').textContent='';
+  document.getElementById('w-compounds').innerHTML='';
+  document.getElementById('wp-normal').className='w-pill';
+  document.getElementById('wp-big').className='w-pill';
+  document.getElementById('w-meal-label').className='';
+  document.getElementById('w-train-label').className='';
+  buildArc(-1,false);
+  document.getElementById('widget-scroll').scrollTop=0;
+  await wait(400);
+}
+
+buildArc(-1,false);
+showStep(0);
+scheduleNext(5800);
+</script>
+</body>
+</html>
