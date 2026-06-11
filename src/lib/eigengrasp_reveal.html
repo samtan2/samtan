@@ -438,7 +438,7 @@ async function showStep(idx){
   surface(step.surface);
   await wait(200);
   const el=document.getElementById(step.surface);
-  if(el) el.scrollIntoView({behavior:'smooth',block:'nearest'});
+  // if(el) el.scrollIntoView({behavior:'smooth',block:'nearest'});
   await wait(400);
   await doAction(step.action);
 }
