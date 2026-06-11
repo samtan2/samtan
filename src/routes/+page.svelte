@@ -105,7 +105,7 @@
 
     <div class="mb-4">
       <div class="rounded-xl overflow-hidden" style="box-shadow: 0 16px 48px rgba(0,0,0,0.35);">
-        <iframe srcdoc={garmentHtml} class="w-full block" style="height: 480px;" title="garment_gen demo"></iframe>
+        <iframe srcdoc={garmentHtml} class="w-full block" style="height: 480px;" title="garment_gen demo" scrolling="no"></iframe>
       </div>
     </div>
 
@@ -180,7 +180,7 @@
     </div>
     {#if activeSession === 'metabolic_tracker'}
       <div class="rounded-xl overflow-hidden" style="box-shadow: 0 16px 48px rgba(0,0,0,0.35);">
-        <iframe srcdoc={eigengrasRevealHtml} class="w-full block" style="height: 600px;" title="metabolic tracker"></iframe>
+        <iframe srcdoc={eigengrasRevealHtml} class="w-full block" style="height: 600px;" title="metabolic tracker" scrolling="no"></iframe>
       </div>
     {:else}
       <div class="rounded-xl overflow-hidden" style="box-shadow: 0 16px 48px rgba(0,0,0,0.35);">
@@ -190,6 +190,7 @@
           class="w-full block"
           style="height: 600px;"
           title="eigengrasp session replay"
+          scrolling="no"
         ></iframe>
       </div>
     {/if}
