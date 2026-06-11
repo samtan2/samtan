@@ -7,6 +7,28 @@
   let activeSession = $state('metabolic_tracker');
   let showAbout = $state(false);
 
+  const workImages = ['/work1.jpg','/work2.jpg','/work3.jpg','/work4.jpg','/work5.jpg','/work6.png'];
+  const pillImages = ['/pill_sketch.webp','/pill_black.webp','/pill_white.webp'];
+  const garmentImages = ['/method_b_result.png'];
+
+  let lightbox = $state(null);
+
+  function openLightbox(images, index) { lightbox = { images, index }; }
+  function closeLightbox() { lightbox = null; }
+  function lightboxPrev() { if (lightbox) lightbox.index = (lightbox.index - 1 + lightbox.images.length) % lightbox.images.length; }
+  function lightboxNext() { if (lightbox) lightbox.index = (lightbox.index + 1) % lightbox.images.length; }
+
+  $effect(() => {
+    if (!lightbox) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') lightboxPrev();
+      if (e.key === 'ArrowRight') lightboxNext();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
   function switchSession(key) {
     activeSession = key;
     egFrame?.contentWindow.postMessage({ type: 'switch', key }, '*');
@@ -115,7 +137,7 @@
       </h3>
       <p class="text-[14px] text-zinc-900 leading-relaxed mb-2">Voronoi body encoding solved both. Landmarks anyone already knows, and a garment that adapts to whatever it's placed on.</p>
       <video src="/videos/method_b.mp4" autoplay muted playsinline loop class="w-full rounded-lg"></video>
-      <img src="/method_b_result.png" alt="garment result in Houdini" class="w-full rounded-lg mt-2 object-cover" />
+      <img src="/method_b_result.png" alt="garment result in Houdini" class="w-full rounded-lg mt-2 object-cover cursor-pointer" onclick={() => openLightbox(garmentImages, 0)} />
     </div>
 
     <p class="text-[13px] text-zinc-400 text-center">Drop in your avatar, place intuitive landmarks, start designing</p>
@@ -178,10 +200,10 @@
     <p class="text-[11px] uppercase tracking-[0.12em] text-zinc-400 mb-2">project</p>
     <h2 class="text-[16px] font-[520] text-zinc-900 mb-1">pill organizer</h2>
     <p class="text-[14px] text-zinc-900 leading-snug mb-4">Product design exploration of how health products can better reflect personal identity and daily ritual.</p>
-    <img src="/pill_sketch.webp" alt="pill organizer ideation sketches" class="w-full rounded-lg mb-2 object-cover" />
+    <img src="/pill_sketch.webp" alt="pill organizer ideation sketches" class="w-full rounded-lg mb-2 object-cover cursor-pointer" onclick={() => openLightbox(pillImages, 0)} />
     <div class="grid grid-cols-2 gap-2 mb-4">
-      <img src="/pill_black.webp" alt="pill organizer black render" class="w-full rounded-lg object-cover" />
-      <img src="/pill_white.webp" alt="pill organizer white render" class="w-full rounded-lg object-cover" />
+      <img src="/pill_black.webp" alt="pill organizer black render" class="w-full rounded-lg object-cover cursor-pointer" onclick={() => openLightbox(pillImages, 1)} />
+      <img src="/pill_white.webp" alt="pill organizer white render" class="w-full rounded-lg object-cover cursor-pointer" onclick={() => openLightbox(pillImages, 2)} />
     </div>
     <p class="text-[14px] text-zinc-900 leading-relaxed">A self-directed brief for a pill organizer in the $20–30 range, designed for people who take their health seriously but want objects that reflect their taste. Explored bi-stable hinges, magnetic lids, removable containers, and slide-out forms across multiple sketch iterations. Material studies in wood, metal, and plastic. Two directions, one minimal, one modular.</p>
   </section>
@@ -191,9 +213,9 @@
       <a href="https://instagram.com/3ddump" target="_blank" rel="noopener" class="text-zinc-400 hover:text-zinc-600 transition-colors">@3ddump</a>
     </p>
     <div class="grid grid-cols-3 gap-2">
-      {#each ['/work1.jpg','/work2.jpg','/work3.jpg','/work4.jpg','/work5.jpg','/work6.png'] as src}
+      {#each workImages as src, i}
         <div class="aspect-square">
-          <img {src} alt="" class="w-full h-full rounded-lg object-cover" />
+          <img {src} alt="" class="w-full h-full rounded-lg object-cover cursor-pointer" onclick={() => openLightbox(workImages, i)} />
         </div>
       {/each}
     </div>
@@ -219,3 +241,33 @@
   </section>
 
 </main>
+
+{#if lightbox}
+  <div
+    class="fixed inset-0 z-[100] bg-black/92 flex items-center justify-center"
+    onclick={closeLightbox}
+  >
+    <img
+      src={lightbox.images[lightbox.index]}
+      alt=""
+      class="max-h-[90vh] max-w-[90vw] object-contain rounded-lg"
+      onclick={(e) => e.stopPropagation()}
+    />
+    {#if lightbox.images.length > 1}
+      <button
+        class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-white/60 hover:text-white transition-colors cursor-pointer"
+        onclick={(e) => { e.stopPropagation(); lightboxPrev(); }}
+        aria-label="Previous"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button
+        class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-white/60 hover:text-white transition-colors cursor-pointer"
+        onclick={(e) => { e.stopPropagation(); lightboxNext(); }}
+        aria-label="Next"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    {/if}
+  </div>
+{/if}
